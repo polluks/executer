@@ -9,7 +9,8 @@ TARGET=Executer
 
 SRCS= src/executer.c \
 	src/libraries.c \
-	src/arexx.c
+	src/arexx.c \
+	src/window.c
 
 OBJS=$(SRCS:.c=.o)
 

@@ -5,6 +5,7 @@
 
 #include "libraries.h"
 #include "arexx.h"
+#include "window.h"
 
 #define AREXX_PORTNAME "EXECUTER"
 
@@ -26,7 +27,7 @@ int main (int argc, char **argv)
 {
         BOOL send_window_show_hide = FALSE;
         int retval;
-        ULONG mask, signals;
+        ULONG rx_signal, win_signal, signals;
 	/* Open libraries */
 	if (libraries_open () != 0) {
 		return 1;
@@ -42,21 +43,30 @@ int main (int argc, char **argv)
             return 0;
         }
 
-        mask = arexx_signal();
+        if (window_init() != 0) {
+            arexx_free ();
+	    libraries_close ();
+            return 1;
+        }
+
+        rx_signal = arexx_signal ();
+        win_signal = window_signal ();
 	/* Open window if requested */
         while (_quit == FALSE) {
-            signals = Wait (mask | SIGBREAKF_CTRL_C);
+            signals = Wait (rx_signal | win_signal | SIGBREAKF_CTRL_C);
             if (signals & SIGBREAKF_CTRL_C) {
                 _quit = TRUE;
             }
-            if (signals & mask) {
+            if (signals & rx_signal) {
                 arexx_dispose ();
             }
+            if (signals & win_signal) {
+                window_dispose (&_quit);
+            }
         }
-        /* Uninit AREXX */
-        arexx_free ();
 
-	/* Close libraries */
+        window_free ();
+        arexx_free ();
 	libraries_close ();
 
 	return 0;
