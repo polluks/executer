@@ -24,6 +24,7 @@ static BOOL _quit = FALSE;
 
 int main (int argc, char **argv)
 {
+        BOOL send_window_show_hide = FALSE;
         int retval;
         ULONG mask, signals;
 	/* Open libraries */
@@ -35,8 +36,10 @@ int main (int argc, char **argv)
         retval = arexx_init (AREXX_PORTNAME, _commands);
         if (retval > 0) { /* fail */
 	    libraries_close ();
+            return 1;
         } else if (retval < 0) { /* already open */
             /* send arexx show window */
+            return 0;
         }
 
         mask = arexx_signal();
