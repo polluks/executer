@@ -13,7 +13,7 @@ struct rx_command {
 };
 
 int arexx_init (const char *name, struct rx_command  *list);
-ULONG arexx_sigbit (void);
+ULONG arexx_signal (void);
 void arexx_free (void);
 int arexx_dispose (void);
 

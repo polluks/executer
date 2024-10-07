@@ -39,7 +39,7 @@ int main (int argc, char **argv)
             /* send arexx show window */
         }
 
-        mask = arexx_sigbit();
+        mask = arexx_signal();
 	/* Open window if requested */
         while (_quit == FALSE) {
             signals = Wait (mask | SIGBREAKF_CTRL_C);

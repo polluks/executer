@@ -14,7 +14,7 @@
 
 #include "arexx.h"
 
-static ULONG _sigbit = 0;
+static ULONG _signal = 0;
 static struct MsgPort *_port = NULL;
 static struct rx_command *_list = NULL;
 
@@ -33,16 +33,16 @@ int arexx_init (const char *name, struct rx_command  *list)
     }
     Permit ();
     if (_port != NULL) {
-        _sigbit = 1L << _port->mp_SigBit;
+        _signal = 1L << _port->mp_SigBit;
         _list = list;
         retval = 0;
     }
     return retval;
 }
 
-ULONG arexx_sigbit (void)
+ULONG arexx_signal (void)
 {
-    return _sigbit;
+    return _signal;
 }
 
 void arexx_free (void)
