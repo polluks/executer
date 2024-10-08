@@ -36,6 +36,8 @@ int arexx_init (const char *name, struct rx_command  *list)
         _signal = 1L << _port->mp_SigBit;
         _list = list;
         retval = 0;
+    } else {
+        retval = -1;
     }
     return retval;
 }

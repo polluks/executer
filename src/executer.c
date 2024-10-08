@@ -22,12 +22,13 @@ static struct rx_command _commands[] =
 };
 
 static BOOL _quit = FALSE;
+static ULONG _rx_signal, _win_signal;
 
 int main (int argc, char **argv)
 {
         BOOL send_window_show_hide = FALSE;
         int retval;
-        ULONG rx_signal, win_signal, signals;
+        ULONG signals;
 	/* Open libraries */
 	if (libraries_open () != 0) {
 		return 1;
@@ -40,6 +41,8 @@ int main (int argc, char **argv)
             return 1;
         } else if (retval < 0) { /* already open */
             /* send arexx show window */
+            arexx_free ();
+	    libraries_close ();
             return 0;
         }
 
@@ -49,19 +52,20 @@ int main (int argc, char **argv)
             return 1;
         }
 
-        rx_signal = arexx_signal ();
-        win_signal = window_signal ();
+        _rx_signal = arexx_signal ();
+        _win_signal = window_signal ();
 	/* Open window if requested */
         while (_quit == FALSE) {
-            signals = Wait (rx_signal | win_signal | SIGBREAKF_CTRL_C);
+            signals = Wait (_rx_signal | _win_signal | SIGBREAKF_CTRL_C);
             if (signals & SIGBREAKF_CTRL_C) {
                 _quit = TRUE;
             }
-            if (signals & rx_signal) {
+            if (signals & _rx_signal) {
                 arexx_dispose ();
             }
-            if (signals & win_signal) {
+            if (signals & _win_signal) {
                 window_dispose (&_quit);
+                _win_signal = window_signal ();
             }
         }
 
@@ -75,11 +79,21 @@ int main (int argc, char **argv)
 void _rx_show (struct RexxMsg *msg, const char *args)
 {
     fprintf (stderr, "SHOW. args:%s\n", args);
+    if (window_visibility (TRUE) != 0) {
+        fprintf (stderr, "SHOW failed.\n");
+    }
+    _win_signal = window_signal ();
+    fprintf (stderr, "%s: New signal %lu.\n", "SHOW", _win_signal);
 }
 
 void _rx_hide (struct RexxMsg *msg, const char *args)
 {
     fprintf (stderr, "HIDE. args:%s\n", args);
+    if (window_visibility (FALSE) != 0) {
+        fprintf (stderr, "HIDE failed.\n");
+    }
+    _win_signal = window_signal ();
+    fprintf (stderr, "%s: New signal %lu.\n", "HIDE", _win_signal);
 }
 
 void _rx_quit (struct RexxMsg *msg, const char *args)
