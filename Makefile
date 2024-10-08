@@ -9,8 +9,15 @@ TARGET=Executer
 
 SRCS= src/executer.c \
 	src/libraries.c \
-	src/arexx.c \
-	src/window.c
+	src/arexx.c
+
+ifeq ($(ENABLE_MUI), 1)
+CFLAGS+=-DENABLE_MUI
+SRCS+=src/window-mui.c
+TARGET=Executor_mui
+else
+SRCS+=src/window-gadtools.c
+endif
 
 OBJS=$(SRCS:.c=.o)
 
