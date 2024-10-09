@@ -21,7 +21,7 @@
 #define BUTTON_HEIGHT 14
 /* file selectors */
 #define FILE_BUTTON_WIDTH 48
-#define TYPE_CYCLE_WIDTH 80
+#define ACTION_CYCLE_WIDTH 80
 #define ADD_BUTTON_WIDTH 52
 /* Save, Use, Cancel */
 #define BUTTON_WIDTH 72
@@ -36,7 +36,9 @@ enum {
     GAD_ID_DELETE_BUTTON,
     GAD_ID_FILE_STRING,
     GAD_ID_FILE_BUTTON,
-    GAD_ID_TYPE_CYCLE,
+    GAD_ID_ACTION1_TEXT,
+    GAD_ID_ACTION_CYCLE,
+    GAD_ID_ACTION2_TEXT,
     GAD_ID_SCRIPT_STRING,
     GAD_ID_SCRIPT_BUTTON,
     GAD_ID_ADD_BUTTON,
@@ -71,7 +73,7 @@ struct TextAttr topaz8 = {
 	"topaz.font", 8, 0, 0
 };
 
-static STRPTR labels[] = { "Modify", "Remove", "Create", NULL };
+static STRPTR labels[] = { "Modified", "Removed", "Created", NULL };
 
 int window_init (void)
 {
@@ -222,7 +224,7 @@ static void _handle_gadget_event (struct Gadget *gad, UWORD code)
          _open_filerequester (FR_TYPE_SCRIPT);
     }
     break;
-    case GAD_ID_TYPE_CYCLE: {
+    case GAD_ID_ACTION_CYCLE: {
     }
     break;
     case GAD_ID_ADD_BUTTON: {
@@ -284,30 +286,6 @@ static int _create_gadgets (void)
     /* Top left */
     ng.ng_TopEdge   = top;
     ng.ng_LeftEdge   = 10;
-    ng.ng_Width      = WINDOW_WIDTH/2 - 20;
-    ng.ng_Height     = WINDOW_HEIGHT - BUTTON_HEIGHT - 32 - BUTTON_HEIGHT - 4;
-    ng.ng_GadgetID   = GAD_ID_LIST;
-    gad = CreateGadget (LISTVIEW_KIND, gad, &ng,
-                    GT_Underscore, '_',
-                    TAG_END);
-    if (gad == NULL) return 1;
-    _gads[GAD_ID_LIST] = gad;
-    
-    rightleft = ng.ng_LeftEdge + ng.ng_Width + 8;
-    
-    ng.ng_TopEdge    = top + ng.ng_Height;
-    ng.ng_Height     = BUTTON_HEIGHT;
-    ng.ng_GadgetText = "_Delete";
-    ng.ng_GadgetID   = GAD_ID_DELETE_BUTTON;
-    gad = CreateGadget (BUTTON_KIND, gad, &ng,
-                    GT_Underscore, '_',
-                    TAG_END);
-    if (gad == NULL) return 1;
-    _gads[GAD_ID_DELETE_BUTTON] = gad;
-    
-    /* Top right */
-    ng.ng_TopEdge    = top;
-    ng.ng_LeftEdge   = rightleft;
     ng.ng_Width      = WINDOW_WIDTH/2 - 10 - 4 - FILE_BUTTON_WIDTH;
     ng.ng_Height     = BUTTON_HEIGHT;
     ng.ng_GadgetText = "";
@@ -330,24 +308,48 @@ static int _create_gadgets (void)
     if (gad == NULL) return 1;
     _gads[GAD_ID_FILE_BUTTON] = gad;
     
+    rightleft = ng.ng_LeftEdge + ng.ng_Width + 8; 
+    
     /* 2nd row */
     ng.ng_TopEdge    = top + BUTTON_HEIGHT + 4;
-    ng.ng_LeftEdge   = rightleft;
-    ng.ng_Width      = WINDOW_WIDTH/2 - 10;
+    ng.ng_LeftEdge   = 10;
+    ng.ng_Width      = 56;
+    ng.ng_Height     = BUTTON_HEIGHT;
+    ng.ng_GadgetText = "WHEN";
+    ng.ng_GadgetID   = GAD_ID_ACTION1_TEXT;
+    gad = CreateGadget (TEXT_KIND, gad, &ng,
+                    GT_Underscore, '_',
+                    TAG_END);
+    if (gad == NULL) return 1;
+    _gads[GAD_ID_ACTION1_TEXT] = gad;
+    
+    ng.ng_LeftEdge   +=  ng.ng_Width + 4;
+    ng.ng_Width      = WINDOW_WIDTH/2 - 114 - 8;
     ng.ng_Height     = BUTTON_HEIGHT;
     ng.ng_GadgetText = "";
-    ng.ng_GadgetID   = GAD_ID_TYPE_CYCLE;
+    ng.ng_GadgetID   = GAD_ID_ACTION_CYCLE;
     gad = CreateGadget (CYCLE_KIND, gad, &ng,
                     GT_Underscore, '_',
                     GTCY_Labels, labels,
                     GTCY_Active, 0,
                     TAG_END);
     if (gad == NULL) return 1;
-    _gads[GAD_ID_TYPE_CYCLE] = gad;
+    _gads[GAD_ID_ACTION_CYCLE] = gad;
+    
+    ng.ng_LeftEdge   += ng.ng_Width + 4;
+    ng.ng_Width      = 48;
+    ng.ng_Height     = BUTTON_HEIGHT;
+    ng.ng_GadgetText = "RUN";
+    ng.ng_GadgetID   = GAD_ID_ACTION2_TEXT;
+    gad = CreateGadget (TEXT_KIND, gad, &ng,
+                    GT_Underscore, '_',
+                    TAG_END);
+    if (gad == NULL) return 1;
+    _gads[GAD_ID_ACTION2_TEXT] = gad;
     
     /* 3th row */
     ng.ng_TopEdge    = top + BUTTON_HEIGHT + 4 + BUTTON_HEIGHT + 4;
-    ng.ng_LeftEdge   = rightleft;
+    ng.ng_LeftEdge   = 10;
     ng.ng_GadgetText = "";
     ng.ng_Width      = WINDOW_WIDTH/2 - 10 - 4 - FILE_BUTTON_WIDTH;
     ng.ng_Height     = BUTTON_HEIGHT;
@@ -369,10 +371,10 @@ static int _create_gadgets (void)
                     TAG_END);
     if (gad == NULL) return 1;
     _gads[GAD_ID_SCRIPT_BUTTON] = gad;
-     
+    
     /* 4th row */
-    ng.ng_TopEdge    = top + BUTTON_HEIGHT + 4 + BUTTON_HEIGHT + 4 + BUTTON_HEIGHT + 4;
-    ng.ng_LeftEdge   = rightleft;
+    ng.ng_TopEdge    = top +  WINDOW_HEIGHT - BUTTON_HEIGHT - 4 - BUTTON_HEIGHT - 4 - BUTTON_HEIGHT - 4;
+    ng.ng_LeftEdge   = 10;
     ng.ng_Width      = WINDOW_WIDTH/2 - 10;
     ng.ng_Height     = BUTTON_HEIGHT;
     ng.ng_GadgetText = "_Add";
@@ -382,6 +384,29 @@ static int _create_gadgets (void)
                     TAG_END);
     if (gad == NULL) return 1;
     _gads[GAD_ID_ADD_BUTTON] = gad;
+     
+    /* Top right */
+    ng.ng_TopEdge    = top;
+    ng.ng_LeftEdge   = rightleft;
+    ng.ng_Width      = WINDOW_WIDTH/2 - 10 - 8;
+    ng.ng_Height     = WINDOW_HEIGHT - BUTTON_HEIGHT - 4 - BUTTON_HEIGHT - 4 - BUTTON_HEIGHT - 4;
+    ng.ng_GadgetID   = GAD_ID_LIST;
+    gad = CreateGadget (LISTVIEW_KIND, gad, &ng,
+                    GT_Underscore, '_',
+                    TAG_END);
+    if (gad == NULL) return 1;
+    _gads[GAD_ID_LIST] = gad;
+    
+    ng.ng_TopEdge    = top + ng.ng_Height;
+    ng.ng_Height     = BUTTON_HEIGHT;
+    ng.ng_GadgetText = "_Delete";
+    ng.ng_GadgetID   = GAD_ID_DELETE_BUTTON;
+    gad = CreateGadget (BUTTON_KIND, gad, &ng,
+                    GT_Underscore, '_',
+                    TAG_END);
+    if (gad == NULL) return 1;
+    _gads[GAD_ID_DELETE_BUTTON] = gad;
+
    
     /* Bottom part */ 
     ng.ng_LeftEdge   = 10;
