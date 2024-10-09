@@ -7,23 +7,13 @@
 #include <clib/exec_protos.h>
 
 #include "notify.h"
+#include "utility.h"
 
 #define MAX_NOTIFIES 100
 ULONG _signal;
 
 static struct MsgPort *_port = NULL;
 static struct List *_list = NULL;
-
-BOOL utility_exists (const char *path)
-{
-    BOOL ret = FALSE;
-    BPTR l = Lock (path, ACCESS_READ);
-    if (l) {
-        UnLock (l);
-        ret = TRUE;
-    }
-    return ret;
-}
 
 int notify_init (void)
 {
@@ -45,7 +35,7 @@ int notify_init (void)
 void notify_free (void)
 {
     _signal = 0;
-    notify_clear ();
+    (void)notify_clear ();
     if (_list != NULL) {
         FreeMem (_list, sizeof (struct List));
     }
@@ -65,6 +55,11 @@ void notify_dispose (void)
     struct NotifyMessage *msg;
     struct notify_item *item;
 
+    if (_list == NULL) {
+        fprintf (stderr, "Notify add: invalid list.\n");
+        return; /* error */
+    }
+
     if (IsListEmpty (_list)) {
         return;
     }
@@ -80,6 +75,12 @@ void notify_dispose (void)
 int notify_add (const char *path, const char *script, notify_reason_t reason)
 {
     struct notify_item *item;
+    
+    if (_list == NULL) {
+        fprintf (stderr, "Notify add: invalid list.\n");
+        return 1; /* error */
+    }
+
     if (path == NULL || script == NULL) {
         fprintf (stderr, "Notify add: invalid input\n");
         return 1;
@@ -123,9 +124,13 @@ int notify_remove (const char *path)
 {
     struct notify_item *item;
     struct notify_item *next;
+    
+    if (_list == NULL) {
+        return 1; /* error */
+    }
 
     if (IsListEmpty (_list)) {
-        return 1;
+        return 0;
     }
 
     item = (struct notify_item *)_list->lh_Head;
