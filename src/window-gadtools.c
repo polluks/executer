@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include <exec/exec.h>
 #include <intuition/intuition.h>
 #include <intuition/gadgetclass.h>
 #include <libraries/gadtools.h>
@@ -35,9 +36,9 @@ enum {
     GAD_ID_DELETE_BUTTON,
     GAD_ID_FILE_STRING,
     GAD_ID_FILE_BUTTON,
+    GAD_ID_TYPE_CYCLE,
     GAD_ID_SCRIPT_STRING,
     GAD_ID_SCRIPT_BUTTON,
-    GAD_ID_TYPE_CYCLE,
     GAD_ID_ADD_BUTTON,
     GAD_ID_SAVE,
     GAD_ID_USE,
@@ -55,6 +56,10 @@ static void *_visualinfo = NULL;
 static struct Window *_window = NULL;
 static struct Gadget *_glist;
 static struct Gadget *_gads[GAD_ID_LAST];
+
+#define TMP_SIZE 1024
+static STRPTR _tmp_file = NULL;
+static STRPTR _tmp_script = NULL;
 
 static void _handle_gadget_event(struct Gadget *gad, UWORD code);
 static struct Window *_open_window (void);
@@ -93,6 +98,19 @@ int window_init (void)
         window_free ();
         return 1;
     }
+
+    _tmp_file = (STRPTR)AllocMem (TMP_SIZE, MEMF_ANY|MEMF_CLEAR);
+    if (_tmp_file == NULL) {
+        fprintf (stderr, "Could not alloc mem to tmp file string\n");
+        window_free ();
+        return 1;
+    }
+    _tmp_script = (STRPTR)AllocMem (TMP_SIZE, MEMF_ANY|MEMF_CLEAR);
+    if (_tmp_script == NULL) {
+        fprintf (stderr, "Could not alloc memory to tmp script string\n");
+        window_free ();
+        return 1;
+    }
     return 0;
 }
 
@@ -106,6 +124,8 @@ void window_free (void)
     if (_visualinfo != NULL) FreeVisualInfo (_visualinfo);
     if (_pubscreen != NULL) UnlockPubScreen (NULL, _pubscreen);
     if (_font != NULL) CloseFont (_font);
+    if (_tmp_file != NULL) FreeMem (_tmp_file, TMP_SIZE);
+    if (_tmp_script != NULL) FreeMem (_tmp_script, TMP_SIZE);
 }
 
 ULONG window_signal (void)
@@ -294,6 +314,7 @@ static int _create_gadgets (void)
     ng.ng_GadgetID   = GAD_ID_FILE_STRING;
     gad = CreateGadget (STRING_KIND, gad, &ng,
                     GT_Underscore, '_',
+                    GTST_MaxChars, TMP_SIZE - 1,
                     TAG_END);
     if (gad == NULL) return 1;
     _gads[GAD_ID_FILE_STRING] = gad;
@@ -312,6 +333,21 @@ static int _create_gadgets (void)
     /* 2nd row */
     ng.ng_TopEdge    = top + BUTTON_HEIGHT + 4;
     ng.ng_LeftEdge   = rightleft;
+    ng.ng_Width      = WINDOW_WIDTH/2 - 10;
+    ng.ng_Height     = BUTTON_HEIGHT;
+    ng.ng_GadgetText = "";
+    ng.ng_GadgetID   = GAD_ID_TYPE_CYCLE;
+    gad = CreateGadget (CYCLE_KIND, gad, &ng,
+                    GT_Underscore, '_',
+                    GTCY_Labels, labels,
+                    GTCY_Active, 0,
+                    TAG_END);
+    if (gad == NULL) return 1;
+    _gads[GAD_ID_TYPE_CYCLE] = gad;
+    
+    /* 3th row */
+    ng.ng_TopEdge    = top + BUTTON_HEIGHT + 4 + BUTTON_HEIGHT + 4;
+    ng.ng_LeftEdge   = rightleft;
     ng.ng_GadgetText = "";
     ng.ng_Width      = WINDOW_WIDTH/2 - 10 - 4 - FILE_BUTTON_WIDTH;
     ng.ng_Height     = BUTTON_HEIGHT;
@@ -329,25 +365,11 @@ static int _create_gadgets (void)
     ng.ng_GadgetID   = GAD_ID_SCRIPT_BUTTON;
     gad = CreateGadget (BUTTON_KIND, gad, &ng,
                     GT_Underscore, '_',
+                    GTST_MaxChars, TMP_SIZE - 1,
                     TAG_END);
     if (gad == NULL) return 1;
     _gads[GAD_ID_SCRIPT_BUTTON] = gad;
-    
-    /* 3th row */
-    ng.ng_TopEdge    = top + BUTTON_HEIGHT + 4 + BUTTON_HEIGHT + 4;
-    ng.ng_LeftEdge   = rightleft;
-    ng.ng_Width      = WINDOW_WIDTH/2 - 10;
-    ng.ng_Height     = BUTTON_HEIGHT;
-    ng.ng_GadgetText = "";
-    ng.ng_GadgetID   = GAD_ID_TYPE_CYCLE;
-    gad = CreateGadget (CYCLE_KIND, gad, &ng,
-                    GT_Underscore, '_',
-                    GTCY_Labels, labels,
-                    GTCY_Active, 0,
-                    TAG_END);
-    if (gad == NULL) return 1;
-    _gads[GAD_ID_TYPE_CYCLE] = gad;
-    
+     
     /* 4th row */
     ng.ng_TopEdge    = top + BUTTON_HEIGHT + 4 + BUTTON_HEIGHT + 4 + BUTTON_HEIGHT + 4;
     ng.ng_LeftEdge   = rightleft;
@@ -403,16 +425,21 @@ static void _open_filerequester (FR_TYPE type)
     struct FileRequester *fr;
     char *title;
     char *pattern;
+    char *path;
+
+    /* FIXME: paths */
     if (type == FR_TYPE_SCRIPT) {
         title = "Select AREXX script";
-        pattern = "~(#?rexx)";
+        pattern = "#?.rexx";
+        path = "S:";
     } else if (type == FR_TYPE_FILE) {
         title = "Select FILE to inspect";
-        pattern = "~(#?)";
+        pattern = "#?";
+        path = "SYS:";
     }
     fr = (struct FileRequester *)AllocAslRequestTags(ASL_FileRequest,
                             ASL_Hail, (ULONG)title,
-                            ASL_Dir,  (ULONG)"sys:",
+                            ASL_Dir,  (ULONG)path,
                             ASL_File, (ULONG)"",
                             ASL_Pattern, (ULONG)pattern,
                             ASL_FuncFlags, FILF_PATGAD,
@@ -423,14 +450,15 @@ static void _open_filerequester (FR_TYPE type)
         return;
     }
     if (AslRequest(fr, 0L)) {
-        printf ("PATH=%s FILE=%s\n", fr->rf_Dir, fr->rf_File);
-    #if 0    /* FIXME: */
         if (type == FR_TYPE_SCRIPT) {
-            GT_SetGadgetAttrs (_gads[GAD_ID_SCRIPT_STRING], _window, NULL, GTST_String, fr->rf_Dir);
+            CopyMem (fr->rf_Dir, _tmp_script, strlen (fr->rf_Dir) + 1);
+            AddPart (_tmp_script, fr->rf_File, TMP_SIZE);
+            GT_SetGadgetAttrs (_gads[GAD_ID_SCRIPT_STRING], _window, NULL, GTST_String, _tmp_script);
         } else if (type == FR_TYPE_FILE) {
-            GT_SetGadgetAttrs (_gads[GAD_ID_FILE_STRING], _window, NULL, GTST_String, fr->rf_Dir);
+            CopyMem (fr->rf_Dir, _tmp_file, strlen (fr->rf_Dir) + 1);
+            AddPart (_tmp_file, fr->rf_File, TMP_SIZE);
+            GT_SetGadgetAttrs (_gads[GAD_ID_FILE_STRING], _window, NULL, GTST_String, _tmp_file);
         }
-    #endif
     }
-    FreeAslRequest(fr);
+    FreeAslRequest (fr);
 }
