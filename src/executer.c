@@ -5,6 +5,7 @@
 
 #include "libraries.h"
 #include "arexx.h"
+#include "notify.h"
 #include "window.h"
 
 #define AREXX_PORTNAME "EXECUTER"
@@ -22,7 +23,7 @@ static struct rx_command _commands[] =
 };
 
 static BOOL _quit = FALSE;
-static ULONG _rx_signal, _win_signal;
+static ULONG _rx_signal, _notify_signal, _win_signal;
 
 int main (int argc, char **argv)
 {
@@ -45,6 +46,22 @@ int main (int argc, char **argv)
 	    libraries_close ();
             return 0;
         }
+	
+        /* Setup notifies */
+        retval = notify_init ();
+        if (retval != 0) {
+            arexx_free ();
+	    libraries_close ();
+            return 1;
+        }
+
+        /* FIXME: remove this test notify */
+        if (notify_add ("RAM:test", "S:user-startup", NOTIFY_REASON_CREATE) != 0) {
+            notify_free ();
+            arexx_free ();
+	    libraries_close ();
+            return 1;
+        }
 
         if (window_init() != 0) {
             arexx_free ();
@@ -53,23 +70,28 @@ int main (int argc, char **argv)
         }
 
         _rx_signal = arexx_signal ();
+        _notify_signal = notify_signal ();
         _win_signal = window_signal ();
 	/* Open window if requested */
         while (_quit == FALSE) {
-            signals = Wait (_rx_signal | _win_signal | SIGBREAKF_CTRL_C);
-            if (signals & SIGBREAKF_CTRL_C) {
-                _quit = TRUE;
-            }
+            signals = Wait (_rx_signal | _notify_signal | _win_signal | SIGBREAKF_CTRL_C);
             if (signals & _rx_signal) {
                 arexx_dispose ();
+            }
+            if (signals & _notify_signal) {
+                notify_dispose ();
             }
             if (signals & _win_signal) {
                 window_dispose (&_quit);
                 _win_signal = window_signal ();
             }
+            if (signals & SIGBREAKF_CTRL_C) {
+                _quit = TRUE;
+            }
         }
 
         window_free ();
+        notify_free ();
         arexx_free ();
 	libraries_close ();
 

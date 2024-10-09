@@ -63,7 +63,7 @@ static struct Gadget *_gads[GAD_ID_LAST];
 static STRPTR _tmp_file = NULL;
 static STRPTR _tmp_script = NULL;
 
-static void _handle_gadget_event(struct Gadget *gad, UWORD code);
+static void _handle_gadget_event (struct Gadget *gad, UWORD code);
 static struct Window *_open_window (void);
 static int _create_gadgets (void);
 

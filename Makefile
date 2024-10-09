@@ -9,7 +9,8 @@ TARGET=Executer
 
 SRCS= src/executer.c \
 	src/libraries.c \
-	src/arexx.c
+	src/arexx.c \
+	src/notify.c
 
 ifeq ($(ENABLE_MUI), 1)
 CFLAGS+=-DENABLE_MUI
