@@ -57,7 +57,7 @@ void notify_dispose (void)
     struct NotifyMessage *msg;
     struct notify_item *item;
     BOOL exists;
-    notify_reason_t reason = NOTIFY_REASON_MODIFY;
+    notify_reason_t reason;
 
     if (_list == NULL) {
         fprintf (stderr, "Notify add: invalid list.\n");
@@ -69,19 +69,20 @@ void notify_dispose (void)
     }
 
     while (msg = (struct NotifyMessage *)GetMsg (_port)) {
+            reason = NOTIFY_REASON_MODIFY;
             item = (struct notify_item *)msg->nm_NReq->nr_UserData;
 	    ReplyMsg ((struct Message *)msg);
             /* FIXME: handle command here. */
 
             exists = utility_exists (item->path);
-            fprintf (stderr, "Exists: %s. Item exists: %s\n", exists?"TRUE":"FALSE", item->initially_exists?"TRUE":"FALSE");
-            if (exists != item->initially_exists) {
+            fprintf (stderr, "\n\nExists: %s. Item exists: %s\n", exists?"TRUE":"FALSE", item->exists?"TRUE":"FALSE");
+            if (exists != item->exists) {
                 if (exists == TRUE) reason = NOTIFY_REASON_CREATE;
                 else reason = NOTIFY_REASON_DELETE;
             }
             fprintf (stderr, "Triggered path: %s with reason %s. Item reason: %s \n",
                 item->path, _reason_to_string (reason), _reason_to_string (item->reason));
-            item->initially_exists = exists;
+            item->exists = exists;
 
             if (item->reason == reason) {
                 fprintf (stderr, "Reasons match. Try to spawn cmd: %s\n", item->command);
@@ -105,7 +106,7 @@ int notify_add (const char *path, const char *command, notify_reason_t reason, n
         return 1; /* error */
     }
 
-    if (path == NULL || command == NULL) {
+    if (path == NULL || (command == NULL && cb == NULL) || (cb == NULL && !strcmp(command,""))) {
         fprintf (stderr, "Notify add: invalid input\n");
         return 1;
     }
@@ -122,7 +123,7 @@ int notify_add (const char *path, const char *command, notify_reason_t reason, n
         return 1;
     }
 
-    item->initially_exists = utility_exists (path);
+    item->exists = utility_exists (path);
     item->reason = reason;
     item->cb = cb;
     CopyMem (path, item->path, strlen (path) + 1);

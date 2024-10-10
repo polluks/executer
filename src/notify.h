@@ -20,7 +20,7 @@ struct notify_item
     char path[1024];
     char command[1024];
     notify_reason_t reason;
-    BOOL initially_exists;
+    BOOL exists;
     notify_cb_t cb;
 };
 
