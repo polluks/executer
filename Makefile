@@ -11,6 +11,8 @@ SRCS= src/executer.c \
 	src/libraries.c \
 	src/arexx.c \
 	src/notify.c \
+	src/spawn.c \
+	src/prefs.c \
 	src/utility.c
 
 ifeq ($(ENABLE_MUI), 1)

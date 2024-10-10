@@ -41,7 +41,7 @@ int main (int argc, char **argv)
 	    libraries_close ();
             return 1;
         } else if (retval < 0) { /* already open */
-            /* send arexx show window */
+            /* FIXME: send arexx show window */
             arexx_free ();
 	    libraries_close ();
             return 0;
@@ -54,9 +54,9 @@ int main (int argc, char **argv)
 	    libraries_close ();
             return 1;
         }
-
-        /* FIXME: remove this test notify */
-        if (notify_add ("RAM:test", "S:user-startup", NOTIFY_REASON_CREATE) != 0) {
+        
+        retval = prefs_load ();
+        if (retval != 0) {
             notify_free ();
             arexx_free ();
 	    libraries_close ();

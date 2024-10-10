@@ -15,6 +15,8 @@ ULONG _signal;
 static struct MsgPort *_port = NULL;
 static struct List *_list = NULL;
 
+static const char *_reason_to_string (notify_reason_t reason); 
+
 int notify_init (void)
 {
     _port = CreateMsgPort ();
@@ -54,6 +56,8 @@ void notify_dispose (void)
 {
     struct NotifyMessage *msg;
     struct notify_item *item;
+    BOOL exists;
+    notify_reason_t reason = NOTIFY_REASON_MODIFY;
 
     if (_list == NULL) {
         fprintf (stderr, "Notify add: invalid list.\n");
@@ -68,7 +72,23 @@ void notify_dispose (void)
             item = (struct notify_item *)msg->nm_NReq->nr_UserData;
 	    ReplyMsg ((struct Message *)msg);
             /* FIXME: handle script here. */
-	    fprintf (stderr, "path: %s, script: %s\n", item->path, item->script);
+
+            exists = utility_exists (item->path);
+            fprintf (stderr, "Exists: %s. Item exists: %s\n", exists?"TRUE":"FALSE", item->initially_exists?"TRUE":"FALSE");
+            if (exists != item->initially_exists) {
+                if (exists == TRUE) reason = NOTIFY_REASON_CREATE;
+                else reason = NOTIFY_REASON_DELETE;
+            }
+            fprintf (stderr, "Triggered path: %s with reason %s. Item reason: %s \n",
+                item->path, _reason_to_string (reason), _reason_to_string (item->reason));
+            item->initially_exists = exists;
+
+            if (item->reason == reason) {
+                fprintf (stderr, "Reasons match. Try to spawn cmd: %s\n", item->script);
+                (void)spawn_start (item->script);
+            } else {
+                fprintf (stderr, "Reasons did not match. Trigger: %s != Item: %s \n", _reason_to_string (reason), _reason_to_string (item->reason));
+            }
     }
 }
 
@@ -86,11 +106,12 @@ int notify_add (const char *path, const char *script, notify_reason_t reason)
         return 1;
     }
 
+/*
     if (FALSE == utility_exists (script)) {
         fprintf (stderr, "Notify add: invalid script. Does not exists or don't have access to file: %s.\n", script);
         return 1;
     }
-    
+*/  
     item = (struct notify_item *) AllocMem (sizeof (struct notify_item), MEMF_ANY|MEMF_CLEAR);
     if (item == NULL) {
         fprintf (stderr, "Notify add: could not alloc new item.\n");
@@ -108,14 +129,17 @@ int notify_add (const char *path, const char *script, notify_reason_t reason)
     item->request.nr_Flags = NRF_SEND_MESSAGE | NRF_WAIT_REPLY;
     item->request.nr_stuff.nr_Msg.nr_Port = _port;
     item->request.nr_UserData = (ULONG)item;
+ 
+    AddTail (_list, (struct Node *)item);
 
     if ((StartNotify (&(item->request))) != DOSTRUE) {
+        Remove ((struct Node *)item);
         FreeMem (item, sizeof (struct notify_item));
         fprintf (stderr, "Notify add: StartNotify() failed.\n");
         return 1;
     }
-    
-    AddTail (_list, (struct Node *)item);
+    fprintf (stderr, "Item added path: %s, cmd: %s, reason: %s\n",
+                item->path, item->script, _reason_to_string (item->reason));
 
     return 0;
 }
@@ -174,4 +198,11 @@ int notify_clear (void)
 struct List *notify_list (void)
 {
     return _list;
+}
+
+static const char *_reason_to_string (notify_reason_t reason)
+{
+    if (reason == NOTIFY_REASON_CREATE) return "Create";
+    else if (reason == NOTIFY_REASON_DELETE) return "Delete";
+    return "Modify";
 }
