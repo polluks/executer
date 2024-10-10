@@ -5,11 +5,12 @@
 #include <exec/lists.h>
 #include <dos/notify.h>
 
-typedef enum {
-    NOTIFY_REASON_CREATE = 0,
-    NOTIFY_REASON_DELETE, 
-    NOTIFY_REASON_MODIFY
-} notify_reason_t;
+enum {
+    NOTIFY_REASON_NONE = 0,
+    NOTIFY_REASON_CREATE = 1,
+    NOTIFY_REASON_DELETE = 2,
+    NOTIFY_REASON_MODIFY = 4
+};
 
 typedef void (*notify_cb_t)(const char *path);
 
@@ -19,7 +20,7 @@ struct notify_item
     struct NotifyRequest request;
     char path[1024];
     char command[1024];
-    notify_reason_t reason;
+    int reason;
     BOOL exists;
     notify_cb_t cb;
 };
@@ -30,7 +31,7 @@ void notify_free (void);
 ULONG *notify_signals (void);
 void notify_dispose (void);
 
-int notify_add (const char *path, const char *command, notify_reason_t reason, notify_cb_t cb);
+int notify_add (const char *path, const char *command, int reason, notify_cb_t cb);
 int notify_remove (const char *path);
 int notify_clear (void);
 

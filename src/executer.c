@@ -16,7 +16,6 @@ static void _rx_hide (struct RexxMsg *msg, const char *args);
 static void _rx_quit (struct RexxMsg *msg, const char *args);
 
 static void _prefs_modified (const char *path);
-static int _add_prefs_monitors (void);
 
 static struct rx_command _commands[] =
 {
@@ -66,7 +65,7 @@ int main (int argc, char **argv)
 	    libraries_close ();
             return 1;
         }
-        (void)_add_prefs_monitors ();
+        (void)notify_add (PREFS_FILE, "", NOTIFY_REASON_CREATE|NOTIFY_REASON_DELETE|NOTIFY_REASON_MODIFY, _prefs_modified);
 
         if (window_init() != 0) {
             arexx_free ();
@@ -129,20 +128,10 @@ static void _rx_quit (struct RexxMsg *msg, const char *args)
     _quit = TRUE;
 }
 
-static int _add_prefs_monitors (void)
-{
-    int ret = 0;
-    ret |= notify_add (PREFS_FILE, "", NOTIFY_REASON_CREATE, _prefs_modified);
-    ret |= notify_add (PREFS_FILE, "", NOTIFY_REASON_DELETE, _prefs_modified);
-    ret |= notify_add (PREFS_FILE, "", NOTIFY_REASON_MODIFY, _prefs_modified);
-    return ret;
-}
-
 static void _prefs_modified (const char *path)
 {
-    (void)path;
     if (prefs_load () != 0) {
         fprintf (stderr, "Reloading prefs failed");
     }
-    (void)_add_prefs_monitors ();
+    (void)notify_add (path, "", NOTIFY_REASON_CREATE|NOTIFY_REASON_DELETE|NOTIFY_REASON_MODIFY, _prefs_modified);
 }

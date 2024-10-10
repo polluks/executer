@@ -15,7 +15,8 @@ ULONG _signal;
 static struct MsgPort *_port = NULL;
 static struct List *_list = NULL;
 
-static const char *_reason_to_string (notify_reason_t reason); 
+static const char *_reason_to_string (int reason); 
+static const char *_reason_bitfield_to_string (int reason);
 
 int notify_init (void)
 {
@@ -57,7 +58,7 @@ void notify_dispose (void)
     struct NotifyMessage *msg;
     struct notify_item *item;
     BOOL exists;
-    notify_reason_t reason;
+    int reason;
 
     if (_list == NULL) {
         fprintf (stderr, "Notify add: invalid list.\n");
@@ -80,11 +81,11 @@ void notify_dispose (void)
                 if (exists == TRUE) reason = NOTIFY_REASON_CREATE;
                 else reason = NOTIFY_REASON_DELETE;
             }
-            fprintf (stderr, "Triggered path: %s with reason %s. Item reason: %s \n",
-                item->path, _reason_to_string (reason), _reason_to_string (item->reason));
+            fprintf (stderr, "Triggered path: %s with reason %s. Item reasons: %s \n",
+                item->path, _reason_to_string (reason), _reason_bitfield_to_string (item->reason));
             item->exists = exists;
 
-            if (item->reason == reason) {
+            if (item->reason & reason) {
                 fprintf (stderr, "Reasons match. Try to spawn cmd: %s\n", item->command);
                 if (item->cb != NULL) {
                     item->cb (item->path);
@@ -92,12 +93,12 @@ void notify_dispose (void)
                     (void)spawn_start (item->command);
                 }
             } else {
-                fprintf (stderr, "Reasons did not match. Trigger: %s != Item: %s \n", _reason_to_string (reason), _reason_to_string (item->reason));
+                fprintf (stderr, "Reasons did not match. Trigger: %s != Item: %s \n", _reason_to_string (reason), _reason_bitfield_to_string (item->reason));
             }
     }
 }
 
-int notify_add (const char *path, const char *command, notify_reason_t reason, notify_cb_t cb)
+int notify_add (const char *path, const char *command, int reason, notify_cb_t cb)
 {
     struct notify_item *item;
     
@@ -145,7 +146,7 @@ int notify_add (const char *path, const char *command, notify_reason_t reason, n
         return 1;
     }
     fprintf (stderr, "Item added path: %s, cmd: %s, reason: %s\n",
-                item->path, item->command, _reason_to_string (item->reason));
+                item->path, item->command, _reason_bitfield_to_string (item->reason));
 
     return 0;
 }
@@ -206,9 +207,32 @@ struct List *notify_list (void)
     return _list;
 }
 
-static const char *_reason_to_string (notify_reason_t reason)
+static const char *_reason_to_string (int reason)
 {
-    if (reason == NOTIFY_REASON_CREATE) return "Create";
-    else if (reason == NOTIFY_REASON_DELETE) return "Delete";
-    return "Modify";
+    if (reason == NOTIFY_REASON_CREATE) return "C";
+    else if (reason == NOTIFY_REASON_DELETE) return "D";
+    return "M";
+}
+
+static char _rbfstr[7];
+static const char *_reason_bitfield_to_string (int reason)
+{
+    int pos = 0;
+    BOOL added = FALSE;
+    for (pos = 0; pos < 7; pos++) _rbfstr[pos] = '\0';
+    pos = 0;
+    if (reason & NOTIFY_REASON_CREATE) {
+        _rbfstr[pos++] = 'C';
+        added = TRUE;
+    }
+    if (reason & NOTIFY_REASON_DELETE) {
+        if (added == TRUE) _rbfstr[pos++] = '|';
+        _rbfstr[pos++] = 'D';
+        added = TRUE;
+    }
+    if (reason & NOTIFY_REASON_MODIFY) {
+        if (added == TRUE) _rbfstr[pos++] = '|';
+        _rbfstr[pos++] = 'M';
+    }
+    return _rbfstr;
 }

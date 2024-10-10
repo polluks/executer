@@ -18,7 +18,7 @@ int prefs_load (void)
     char *buf = NULL;
     char *buf2;
     char *file = NULL;
-    notify_reason_t r;
+    int reason;
     BYTE i = 0;
     size_t len;
 
@@ -43,10 +43,10 @@ int prefs_load (void)
                 CopyMem (buf2, file, len);
                 i++;
             } else if (i == 1) {
-                r = (notify_reason_t)atoi (buf2);
+                reason = atoi (buf2);
                 i++;
             } else if (i == 2) {
-                if (notify_add (file, buf2, r, NULL) != 0) {
+                if (notify_add (file, buf2, reason, NULL) != 0) {
                     fprintf (stderr, "Could not add notify. File: %s Cmd: %s\n", file, buf2);
                 }
                 i = 0;
