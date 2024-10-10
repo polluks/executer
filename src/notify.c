@@ -71,7 +71,7 @@ void notify_dispose (void)
     while (msg = (struct NotifyMessage *)GetMsg (_port)) {
             item = (struct notify_item *)msg->nm_NReq->nr_UserData;
 	    ReplyMsg ((struct Message *)msg);
-            /* FIXME: handle script here. */
+            /* FIXME: handle command here. */
 
             exists = utility_exists (item->path);
             fprintf (stderr, "Exists: %s. Item exists: %s\n", exists?"TRUE":"FALSE", item->initially_exists?"TRUE":"FALSE");
@@ -84,15 +84,15 @@ void notify_dispose (void)
             item->initially_exists = exists;
 
             if (item->reason == reason) {
-                fprintf (stderr, "Reasons match. Try to spawn cmd: %s\n", item->script);
-                (void)spawn_start (item->script);
+                fprintf (stderr, "Reasons match. Try to spawn cmd: %s\n", item->command);
+                (void)spawn_start (item->command);
             } else {
                 fprintf (stderr, "Reasons did not match. Trigger: %s != Item: %s \n", _reason_to_string (reason), _reason_to_string (item->reason));
             }
     }
 }
 
-int notify_add (const char *path, const char *script, notify_reason_t reason)
+int notify_add (const char *path, const char *command, notify_reason_t reason)
 {
     struct notify_item *item;
     
@@ -101,14 +101,14 @@ int notify_add (const char *path, const char *script, notify_reason_t reason)
         return 1; /* error */
     }
 
-    if (path == NULL || script == NULL) {
+    if (path == NULL || command == NULL) {
         fprintf (stderr, "Notify add: invalid input\n");
         return 1;
     }
 
 /*
-    if (FALSE == utility_exists (script)) {
-        fprintf (stderr, "Notify add: invalid script. Does not exists or don't have access to file: %s.\n", script);
+    if (FALSE == utility_exists (command)) {
+        fprintf (stderr, "Notify add: invalid command. Does not exists or don't have access to file: %s.\n", command);
         return 1;
     }
 */  
@@ -121,7 +121,7 @@ int notify_add (const char *path, const char *script, notify_reason_t reason)
     item->initially_exists = utility_exists (path);
     item->reason = reason;
     CopyMem (path, item->path, strlen (path) + 1);
-    CopyMem (script, item->script, strlen (script) + 1);
+    CopyMem (command, item->command, strlen (command) + 1);
 
     item->node.ln_Name = (UBYTE *)item->path;
 
@@ -139,7 +139,7 @@ int notify_add (const char *path, const char *script, notify_reason_t reason)
         return 1;
     }
     fprintf (stderr, "Item added path: %s, cmd: %s, reason: %s\n",
-                item->path, item->script, _reason_to_string (item->reason));
+                item->path, item->command, _reason_to_string (item->reason));
 
     return 0;
 }

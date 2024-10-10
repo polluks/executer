@@ -34,11 +34,11 @@ int prefs_load (void)
         return 1;
     }
 
+    notify_clear ();
     if (fh = Open("ENV:executer.prefs", MODE_OLDFILE)) {
         while ((buf2 = (char *)FGets (fh, (STRPTR)buf, 1024)) != NULL) {
             len = strlen (buf2);
             if (buf2[len-1] == '\n') buf2[len-1] = '\0';
-            fprintf (stderr, "Could not add notify. Buf2: %s, len: %lu\n", buf2, len);
             if (i == 0) {
                 CopyMem (buf2, file, len);
                 i++;

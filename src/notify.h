@@ -16,7 +16,7 @@ struct notify_item
     struct Node node;
     struct NotifyRequest request;
     char path[1024];
-    char script[1024];
+    char command[1024];
     notify_reason_t reason;
     BOOL initially_exists;
 };
@@ -27,7 +27,7 @@ void notify_free (void);
 ULONG *notify_signals (void);
 void notify_dispose (void);
 
-int notify_add (const char *path, const char *script, notify_reason_t reason);
+int notify_add (const char *path, const char *command, notify_reason_t reason);
 int notify_remove (const char *path);
 int notify_clear (void);
 
