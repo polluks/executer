@@ -35,7 +35,7 @@ int prefs_load (void)
     }
 
     notify_clear ();
-    if (fh = Open("ENV:executer.prefs", MODE_OLDFILE)) {
+    if (fh = Open (PREFS_FILE, MODE_OLDFILE)) {
         while ((buf2 = (char *)FGets (fh, (STRPTR)buf, 1024)) != NULL) {
             len = strlen (buf2);
             if (buf2[len-1] == '\n') buf2[len-1] = '\0';
@@ -46,7 +46,7 @@ int prefs_load (void)
                 r = (notify_reason_t)atoi (buf2);
                 i++;
             } else if (i == 2) {
-                if (notify_add (file, buf2, r) != 0) {
+                if (notify_add (file, buf2, r, NULL) != 0) {
                     fprintf (stderr, "Could not add notify. File: %s Cmd: %s\n", file, buf2);
                 }
                 i = 0;

@@ -6,13 +6,17 @@
 #include "libraries.h"
 #include "arexx.h"
 #include "notify.h"
+#include "prefs.h"
 #include "window.h"
 
 #define AREXX_PORTNAME "EXECUTER"
 
-void _rx_show (struct RexxMsg *msg, const char *args);
-void _rx_hide (struct RexxMsg *msg, const char *args);
-void _rx_quit (struct RexxMsg *msg, const char *args);
+static void _rx_show (struct RexxMsg *msg, const char *args);
+static void _rx_hide (struct RexxMsg *msg, const char *args);
+static void _rx_quit (struct RexxMsg *msg, const char *args);
+
+static void _prefs_modified (const char *path);
+static int _add_prefs_monitors (void);
 
 static struct rx_command _commands[] =
 {
@@ -62,6 +66,7 @@ int main (int argc, char **argv)
 	    libraries_close ();
             return 1;
         }
+        (void)_add_prefs_monitors ();
 
         if (window_init() != 0) {
             arexx_free ();
@@ -98,7 +103,7 @@ int main (int argc, char **argv)
 	return 0;
 }
 
-void _rx_show (struct RexxMsg *msg, const char *args)
+static void _rx_show (struct RexxMsg *msg, const char *args)
 {
     fprintf (stderr, "SHOW. args:%s\n", args);
     if (window_visibility (TRUE) != 0) {
@@ -108,7 +113,7 @@ void _rx_show (struct RexxMsg *msg, const char *args)
     fprintf (stderr, "%s: New signal %lu.\n", "SHOW", _win_signal);
 }
 
-void _rx_hide (struct RexxMsg *msg, const char *args)
+static void _rx_hide (struct RexxMsg *msg, const char *args)
 {
     fprintf (stderr, "HIDE. args:%s\n", args);
     if (window_visibility (FALSE) != 0) {
@@ -118,8 +123,26 @@ void _rx_hide (struct RexxMsg *msg, const char *args)
     fprintf (stderr, "%s: New signal %lu.\n", "HIDE", _win_signal);
 }
 
-void _rx_quit (struct RexxMsg *msg, const char *args)
+static void _rx_quit (struct RexxMsg *msg, const char *args)
 {
     fprintf (stderr, "QUIT. args:%s\n...leaving.\n", args);
     _quit = TRUE;
+}
+
+static int _add_prefs_monitors (void)
+{
+    int ret = 0;
+    ret |= notify_add (PREFS_FILE, "", NOTIFY_REASON_CREATE, _prefs_modified);
+    ret |= notify_add (PREFS_FILE, "", NOTIFY_REASON_DELETE, _prefs_modified);
+    ret |= notify_add (PREFS_FILE, "", NOTIFY_REASON_MODIFY, _prefs_modified);
+    return ret;
+}
+
+static void _prefs_modified (const char *path)
+{
+    (void)path;
+    if (prefs_load () != 0) {
+        fprintf (stderr, "Reloading prefs failed");
+    }
+    (void)_add_prefs_monitors ();
 }

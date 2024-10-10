@@ -85,14 +85,18 @@ void notify_dispose (void)
 
             if (item->reason == reason) {
                 fprintf (stderr, "Reasons match. Try to spawn cmd: %s\n", item->command);
-                (void)spawn_start (item->command);
+                if (item->cb != NULL) {
+                    item->cb (item->path);
+                } else {
+                    (void)spawn_start (item->command);
+                }
             } else {
                 fprintf (stderr, "Reasons did not match. Trigger: %s != Item: %s \n", _reason_to_string (reason), _reason_to_string (item->reason));
             }
     }
 }
 
-int notify_add (const char *path, const char *command, notify_reason_t reason)
+int notify_add (const char *path, const char *command, notify_reason_t reason, notify_cb_t cb)
 {
     struct notify_item *item;
     
@@ -120,6 +124,7 @@ int notify_add (const char *path, const char *command, notify_reason_t reason)
 
     item->initially_exists = utility_exists (path);
     item->reason = reason;
+    item->cb = cb;
     CopyMem (path, item->path, strlen (path) + 1);
     CopyMem (command, item->command, strlen (command) + 1);
 
