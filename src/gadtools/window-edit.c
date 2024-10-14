@@ -140,8 +140,9 @@ void window_edit_dispose (BOOL *quit)
     ULONG imsgClass;
     UWORD imsgCode;
     struct Gadget *gad;
-
     BOOL v = _visible;
+    fprintf (stderr, "edit dispose\n");
+
     if (_window == NULL) return;
     while ((imsg = GT_GetIMsg (_window->UserPort)) != NULL) {
         gad = (struct Gadget *)imsg->IAddress;
@@ -205,6 +206,7 @@ static BOOL _handle_gadget_event (struct Gadget *gad, UWORD code)
 {
     BOOL v = _visible;
 
+    fprintf (stderr, "edit gadget id: :%lu\n", (ULONG)gad->GadgetID);
     switch (gad->GadgetID)
     {
     case GAD_ID_FILE_STRING: {
@@ -302,7 +304,7 @@ static int _create_gadgets (void)
     
     /* 2nd row */
     ng.ng_TopEdge   += BUTTON_HEIGHT + 4;
-    ng.ng_LeftEdge   = 40 + 16;
+    ng.ng_LeftEdge   = 16;
     ng.ng_Width      = 40;
     ng.ng_GadgetText = "WHEN";
     ng.ng_GadgetID   = GAD_ID_ACTION1_TEXT;
@@ -313,7 +315,7 @@ static int _create_gadgets (void)
     
     /*FIXME: add checkboxs */ 
 
-    ng.ng_LeftEdge  += WINDOW_WIDTH - 40 - 20 - 16;
+    ng.ng_LeftEdge   = WINDOW_WIDTH - 40 - 16;
     ng.ng_Width      = 40;
     ng.ng_GadgetText = "RUN";
     ng.ng_GadgetID   = GAD_ID_ACTION2_TEXT;
@@ -347,7 +349,28 @@ static int _create_gadgets (void)
     _gads[GAD_ID_CMD_BUTTON] = gad;
     
     /* Bottom */
-    /* FIXME: add */
+    ng.ng_LeftEdge   = 16;
+    ng.ng_TopEdge    = WINDOW_HEIGHT - 20;
+    ng.ng_Width      = BUTTON_WIDTH;
+    ng.ng_Height     = BUTTON_HEIGHT;
+    ng.ng_GadgetText = "_OK";
+    ng.ng_GadgetID   = GAD_ID_OK;
+    ng.ng_Flags      = 0;
+    gad = CreateGadget (BUTTON_KIND, gad, &ng,
+                    GT_Underscore, '_',
+                    TAG_END);
+    if (gad == NULL) return 1;
+    _gads[GAD_ID_OK] = gad;
+
+    ng.ng_LeftEdge   = WINDOW_WIDTH - BUTTON_WIDTH - 16;
+    ng.ng_GadgetText = "_Cancel";
+    ng.ng_GadgetID   = GAD_ID_CANCEL;
+    ng.ng_Flags      = 0;
+    gad = CreateGadget (BUTTON_KIND, gad, &ng,
+                    GT_Underscore, '_',
+                    TAG_END);
+    if (gad == NULL) return 1;
+    _gads[GAD_ID_CANCEL] = gad;
 
     return 0;
 }

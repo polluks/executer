@@ -10,4 +10,6 @@ int window_main_visibility (BOOL visible);
 BOOL window_main_is_visible (void);
 void window_main_dispose (BOOL *quit);
 
+int window_main_setup_list (struct List *nitems);
+
 #endif /* EXECUTER_GADTOOLS_WINDOW_MAIN_H */

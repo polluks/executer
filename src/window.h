@@ -10,4 +10,6 @@ int window_visibility (BOOL visible);
 BOOL window_is_visible (void);
 void window_dispose (BOOL *quit);
 
+int window_setup_list (struct List *nitems);
+
 #endif /* EXECUTER_WINDOW_H */

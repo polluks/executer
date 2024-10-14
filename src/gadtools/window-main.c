@@ -30,14 +30,22 @@
 
 enum {
     GAD_ID_LIST = 0,
-    GAD_ID_REMOVE_BUTTON,
     GAD_ID_ADD_BUTTON,
     GAD_ID_EDIT_BUTTON,
+    GAD_ID_REMOVE_BUTTON,
     GAD_ID_SAVE,
     GAD_ID_USE,
     GAD_ID_CANCEL,
     GAD_ID_LAST
 };
+
+struct gadget_item {
+    struct Node node;
+    char line[80];
+    int index;
+    struct notify_item *item;
+};
+static int _current_index = -1;
 
 static BOOL _visible = FALSE;
 static ULONG _signal = 0;
@@ -57,7 +65,8 @@ static BOOL _handle_gadget_event (struct Gadget *gad, UWORD code);
 static struct Window *_open_window (void);
 static int _create_gadgets (void);
 
-static int _setup_list (struct List *nitems);
+static struct gadget_item *_item_at_index (int index);
+static int _remove_index_from_list (int index);
 static int _clear_list (void);
 
 int window_main_init (struct TextAttr *textattr, void *visualinfo, UWORD topborder)
@@ -106,7 +115,6 @@ int window_main_visibility (BOOL visible)
 
     _visible = visible;
     if (_visible) {
-        _setup_list (notify_list ());
         _window = _open_window ();
         if (_window == NULL) {
             _signal = 0;
@@ -171,27 +179,38 @@ void window_main_dispose (BOOL *quit)
 
 static BOOL _handle_gadget_event (struct Gadget *gad, UWORD code)
 {
+    struct gadget_item *item = NULL;
     BOOL v = _visible;
 
+    fprintf (stderr, "main gadget id: :%lu\n", (ULONG)gad->GadgetID);
     switch (gad->GadgetID)
     {
     case GAD_ID_LIST: {
+        _current_index = (int)code;
+        fprintf (stderr, "List code aka index: %d\n", (int)code);
     }
     break;
     case GAD_ID_REMOVE_BUTTON: {
+        _remove_index_from_list (_current_index);
+        notify_remove_index_from_list (_current_index);
     }
     break;
     case GAD_ID_EDIT_BUTTON: {
-    
+        if (_current_index >= 0 && _current_index < _count) {
+            item = _item_at_index (_current_index);
+            window_edit_edit (_current_index, item->item);
+        }
     }
     break;
     case GAD_ID_ADD_BUTTON: {
-    
+        window_edit_add (_count);
     }
     break;
     case GAD_ID_SAVE: {
+        prefs_save_envarc ();
     }
     case GAD_ID_USE: {
+        prefs_save_env ();
     }
     case GAD_ID_CANCEL: {
         v = FALSE;
@@ -250,6 +269,7 @@ static int _create_gadgets (void)
     ng.ng_Height     = WINDOW_HEIGHT - BUTTON_HEIGHT - 4 - BUTTON_HEIGHT - 4 - top - 4;
     ng.ng_GadgetID   = GAD_ID_LIST;
     gad = CreateGadget (LISTVIEW_KIND, gad, &ng,
+                    GTLV_ShowSelected, NULL,
                     GT_Underscore, '_',
                     TAG_END);
     if (gad == NULL) return 1;
@@ -322,16 +342,60 @@ static int _create_gadgets (void)
     return 0;
 }
 
-struct gadget_item {
-    struct Node node;
-    char line[80];
-    int index;
-    struct notify_item *item;
-};
+static struct gadget_item *_item_at_index (int index)
+{
+    int cur = 0;
+    struct gadget_item *item, *next;
+
+    if (IsListEmpty (_list)) {
+        return NULL;
+    }
+    if (index < 0 || index > _count-1) {
+        return NULL;
+    }
+
+    item = (struct gadget_item *)_list->lh_Head;
+    while (next = (struct gadget_item *)item->node.ln_Succ) {
+        if (index == cur++) {
+            return item;
+        }
+        item = next;
+    }
+    return NULL;
+}
+
+static int _remove_index_from_list (int index)
+{
+    struct gadget_item *item = _item_at_index (index);
+    if (item == NULL) {
+        return 1;
+    }
+
+    GT_SetGadgetAttrs (_gads[GAD_ID_LIST], _window, NULL, GTLV_Labels, "~0");
+    Remove ((struct Node *) item);
+    _count--;
+    if (_count > 0) {
+        index--;
+        if (index < 0) index = 0;
+        GT_SetGadgetAttrs (_gads[GAD_ID_LIST], _window, NULL, GTLV_Selected, index);
+        _current_index = index;
+        GT_SetGadgetAttrs (_gads[GAD_ID_LIST], _window, NULL, GTLV_Labels, _list);
+        GT_SetGadgetAttrs (_gads[GAD_ID_EDIT_BUTTON], _window, NULL, GA_Disabled, FALSE);
+        GT_SetGadgetAttrs (_gads[GAD_ID_REMOVE_BUTTON], _window, NULL, GA_Disabled, FALSE);
+    } else {
+        GT_SetGadgetAttrs (_gads[GAD_ID_EDIT_BUTTON], _window, NULL, GA_Disabled, TRUE);
+        GT_SetGadgetAttrs (_gads[GAD_ID_REMOVE_BUTTON], _window, NULL, GA_Disabled, TRUE);
+    }
+    return 0;
+}
+
 
 static int _clear_list (void)
 {
     struct gadget_item *item, *next;
+
+    GT_SetGadgetAttrs (_gads[GAD_ID_LIST], _window, NULL, GTLV_Labels, "~0");
+    _current_index = -1;
 
     _count = 0;
     if (IsListEmpty (_list)) {
@@ -346,9 +410,8 @@ static int _clear_list (void)
     }
 }
 
-static int _setup_list (struct List *nlist)
+int window_main_setup_list (struct List *nlist)
 {
-#if 1
     int ret = 0;
     int i = 0;
     struct notify_item *nitem, *nnext;
@@ -356,15 +419,22 @@ static int _setup_list (struct List *nlist)
     size_t pos = 0;
 
     _clear_list ();
+
     nitem = (struct notify_item *)nlist->lh_Head;
     while (nnext = (struct notify_item *)nitem->node.ln_Succ) {
+        if (nitem->cb != NULL) { /* skip internals */
+            nitem = nnext;
+            continue;
+        }
+        pos = strlen (nitem->path);
         gitem = AllocMem (sizeof (struct gadget_item), MEMF_ANY|MEMF_CLEAR);
         if (gitem == NULL) {
             ret = 1;
             break;
         }
-        pos = strlen (nitem->path);
-        CopyMem (nitem->path, gitem->line, pos);
+        if (pos > 78) pos = 78;
+        CopyMem (nitem->path, gitem->line, pos++);
+        gitem->line[pos] = '\0';
         gitem->item = nitem;
         gitem->index = i++;
         gitem->node.ln_Name = gitem->line;
@@ -375,10 +445,15 @@ static int _setup_list (struct List *nlist)
     }
     _count = i;
     GT_SetGadgetAttrs (_gads[GAD_ID_LIST], _window, NULL, GTLV_Labels, _list);
-    fprintf (stderr, "_setup_list() count:%d ret: %d\n", _count, ret);
+    if (_count > 0) {
+        GT_SetGadgetAttrs (_gads[GAD_ID_LIST], _window, NULL, GTLV_Selected, 0);
+        _current_index = 0;
+        GT_SetGadgetAttrs (_gads[GAD_ID_EDIT_BUTTON], _window, NULL, GA_Disabled, FALSE);
+        GT_SetGadgetAttrs (_gads[GAD_ID_REMOVE_BUTTON], _window, NULL, GA_Disabled, FALSE);
+    } else {
+        GT_SetGadgetAttrs (_gads[GAD_ID_EDIT_BUTTON], _window, NULL, GA_Disabled, TRUE);
+        GT_SetGadgetAttrs (_gads[GAD_ID_REMOVE_BUTTON], _window, NULL, GA_Disabled, TRUE);
+    }
+    fprintf (stderr, "window_main_setup_list() count:%d ret: %d\n", _count, ret);
     return ret;
-#else
-    GT_SetGadgetAttrs (_gads[GAD_ID_LIST], _window, NULL, GTLV_Labels, nitems);
-    return 0;
-#endif
 }

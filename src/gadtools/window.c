@@ -87,9 +87,15 @@ BOOL window_is_visible (void)
 
 void window_dispose (BOOL *quit)
 {
+    fprintf (stderr, "window_dispose()\n");
     if (window_edit_is_visible () == TRUE) {
         window_edit_dispose (quit);
     } else {
         window_main_dispose (quit);
     }
+}
+
+int window_setup_list (struct List *nitems)
+{
+    return window_main_setup_list (nitems);
 }

@@ -58,20 +58,23 @@ int main (int argc, char **argv)
             return 1;
         }
         
-        retval = prefs_load ();
-        if (retval != 0) {
+        if (window_init() != 0) {
             notify_free ();
             arexx_free ();
 	    libraries_close ();
             return 1;
         }
-        (void)notify_add (PREFS_FILE, "", NOTIFY_REASON_CREATE|NOTIFY_REASON_DELETE|NOTIFY_REASON_MODIFY, _prefs_modified);
-
-        if (window_init() != 0) {
+        
+        retval = prefs_load ();
+        if (retval != 0) {
+            window_free ();
+            notify_free ();
             arexx_free ();
 	    libraries_close ();
             return 1;
         }
+        (void)notify_add (PREFS_PATH_ENV, "", NOTIFY_REASON_CREATE|NOTIFY_REASON_DELETE|NOTIFY_REASON_MODIFY, _prefs_modified);
+        window_setup_list (notify_list ());
 
         _rx_signal = arexx_signal ();
         _notify_signal = notify_signal ();
@@ -86,8 +89,10 @@ int main (int argc, char **argv)
                 notify_dispose ();
             }
             if (signals & _win_signal) {
+                fprintf (stderr, "callkng window_dispose()\n");
                 window_dispose (&_quit);
                 _win_signal = window_signal ();
+                fprintf (stderr, "win signal:%lu\n", _win_signal);
             }
             if (signals & SIGBREAKF_CTRL_C) {
                 _quit = TRUE;
@@ -134,4 +139,5 @@ static void _prefs_modified (const char *path)
         fprintf (stderr, "Reloading prefs failed");
     }
     (void)notify_add (path, "", NOTIFY_REASON_CREATE|NOTIFY_REASON_DELETE|NOTIFY_REASON_MODIFY, _prefs_modified);
+    window_setup_list (notify_list ());
 }

@@ -32,6 +32,7 @@ ULONG *notify_signals (void);
 void notify_dispose (void);
 
 int notify_add (const char *path, const char *command, int reason, notify_cb_t cb);
+int notify_remove_index_from_list (int index);
 int notify_remove (const char *path);
 int notify_clear (void);
 

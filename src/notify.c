@@ -150,6 +150,40 @@ int notify_add (const char *path, const char *command, int reason, notify_cb_t c
     return 0;
 }
 
+static struct notify_item *_item_by_index (int index)
+{
+    int i = 0;
+    struct notify_item *item;
+    struct notify_item *next;
+    
+    if (_list == NULL) {
+        return NULL; /* error */
+    }
+
+    if (IsListEmpty (_list)) {
+        return NULL;
+    }
+
+    item = (struct notify_item *)_list->lh_Head;
+    while ((next = (struct notify_item *) item->node.ln_Succ) != NULL) {
+        if (index == i) {
+            return item;
+        }
+        i++;
+        item = next;
+    }
+    item = NULL;
+    return item;
+}
+
+int notify_remove_index_from_list (int index)
+{
+    struct notify_item *item = _item_by_index (index);
+    if (item == NULL) return 1;
+    Remove ((struct Node *) item);
+    return 0;
+}
+
 int notify_remove (const char *path)
 {
     struct notify_item *item;
