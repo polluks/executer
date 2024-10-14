@@ -17,10 +17,12 @@ SRCS= src/executer.c \
 
 ifeq ($(ENABLE_MUI), 1)
 CFLAGS+=-DENABLE_MUI
-SRCS+=src/window-mui.c
+SRCS+=src/mui/window-mui.c
 TARGET=Executor_mui
 else
-SRCS+=src/window-gadtools.c
+SRCS+=src/gadtools/window.c
+SRCS+=src/gadtools/window-main.c
+SRCS+=src/gadtools/window-edit.c
 endif
 
 OBJS=$(SRCS:.c=.o)

@@ -35,6 +35,8 @@ int notify_add (const char *path, const char *command, int reason, notify_cb_t c
 int notify_remove (const char *path);
 int notify_clear (void);
 
-int notify_get_items (struct notify_item **items, int *count);
+struct List *notify_list (void);
+
+const char *notify_reason_bitfield_to_string (int reason);
 
 #endif /* EXECUTER_NOTIFY_H */
