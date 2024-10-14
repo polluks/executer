@@ -129,7 +129,13 @@ static int _save_to (const char *path)
         err = FPutC (fh, (LONG)'\n');
         if (err == EOF) break;
 
+        err = 0;
         item = next;
+    }
+
+    if (err != 0) {
+        fprintf (stderr, "Error : %ld\n", err);
+        ret = 1;
     }
 
     Close (fh);

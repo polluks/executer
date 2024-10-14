@@ -2,7 +2,7 @@ CC=vc
 RM=rm -f
 
 CONFIG=+aos68k
-CFLAGS=-I. -Isrc
+CFLAGS=-I. -Isrc -O2
 LDFLAGS=-lamiga
 
 TARGET=Executer

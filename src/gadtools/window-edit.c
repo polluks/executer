@@ -19,8 +19,7 @@
 /* common */
 #define BUTTON_HEIGHT 14
 /* file selectors */
-#define FILE_BUTTON_WIDTH 48
-#define ADD_BUTTON_WIDTH 52
+#define REQUESTER_BUTTON_WIDTH 52
 /* Ok Cancel */
 #define BUTTON_WIDTH 72
 
@@ -30,8 +29,8 @@ typedef enum {
 } FR_TYPE;
 
 enum {
-    GAD_ID_FILE_STRING,
-    GAD_ID_FILE_BUTTON,
+    GAD_ID_PATH_STRING,
+    GAD_ID_REQUESTER_BUTTON,
     GAD_ID_ACTION1_TEXT,
     GAD_ID_ACTION_MODIFY_CHECK,
     GAD_ID_ACTION_REMOVE_CHECK,
@@ -181,7 +180,7 @@ int window_edit_add (int index)
 {
     _index = index;
     _tmp_file[0] = '\0';
-    GT_SetGadgetAttrs (_gads[GAD_ID_FILE_STRING], _window, NULL, GTST_String, _tmp_file);
+    GT_SetGadgetAttrs (_gads[GAD_ID_PATH_STRING], _window, NULL, GTST_String, _tmp_file);
     _tmp_script[0] = '\0';
     GT_SetGadgetAttrs (_gads[GAD_ID_CMD_STRING], _window, NULL, GTST_String, _tmp_script);
 
@@ -193,7 +192,7 @@ int window_edit_edit (int index, struct notify_item *item)
 {
     _index = index;
     CopyMem (item->path, _tmp_file, strlen (item->path) + 1);
-    GT_SetGadgetAttrs (_gads[GAD_ID_FILE_STRING], _window, NULL, GTST_String, _tmp_file);
+    GT_SetGadgetAttrs (_gads[GAD_ID_PATH_STRING], _window, NULL, GTST_String, _tmp_file);
     CopyMem (item->command, _tmp_script, strlen (item->command) + 1);
     GT_SetGadgetAttrs (_gads[GAD_ID_CMD_STRING], _window, NULL, GTST_String, _tmp_script);
     /* FIXME: item->reason */
@@ -209,10 +208,10 @@ static BOOL _handle_gadget_event (struct Gadget *gad, UWORD code)
     fprintf (stderr, "edit gadget id: :%lu\n", (ULONG)gad->GadgetID);
     switch (gad->GadgetID)
     {
-    case GAD_ID_FILE_STRING: {
+    case GAD_ID_PATH_STRING: {
     }
     break;
-    case GAD_ID_FILE_BUTTON: {
+    case GAD_ID_REQUESTER_BUTTON: {
          _open_filerequester (FR_TYPE_FILE);
     }
     break;
@@ -281,26 +280,26 @@ static int _create_gadgets (void)
     /* top */
     ng.ng_TopEdge   = top;
     ng.ng_LeftEdge   = 16;
-    ng.ng_Width      = WINDOW_WIDTH - 32 - 4 - FILE_BUTTON_WIDTH;
+    ng.ng_Width      = WINDOW_WIDTH - 32 - 4 - REQUESTER_BUTTON_WIDTH;
     ng.ng_Height     = BUTTON_HEIGHT;
     ng.ng_GadgetText = "";
-    ng.ng_GadgetID   = GAD_ID_FILE_STRING;
+    ng.ng_GadgetID   = GAD_ID_PATH_STRING;
     gad = CreateGadget (STRING_KIND, gad, &ng,
                     GT_Underscore, '_',
                     GTST_MaxChars, TMP_SIZE - 1,
                     TAG_END);
     if (gad == NULL) return 1;
-    _gads[GAD_ID_FILE_STRING] = gad;
+    _gads[GAD_ID_PATH_STRING] = gad;
     
     ng.ng_LeftEdge  += ng.ng_Width + 4;
-    ng.ng_Width      = FILE_BUTTON_WIDTH;
-    ng.ng_GadgetText = "_File";
-    ng.ng_GadgetID   = GAD_ID_FILE_BUTTON;
+    ng.ng_Width      = REQUESTER_BUTTON_WIDTH;
+    ng.ng_GadgetText = "_Path";
+    ng.ng_GadgetID   = GAD_ID_REQUESTER_BUTTON;
     gad = CreateGadget (BUTTON_KIND, gad, &ng,
                     GT_Underscore, '_',
                     TAG_END);
     if (gad == NULL) return 1;
-    _gads[GAD_ID_FILE_BUTTON] = gad;
+    _gads[GAD_ID_REQUESTER_BUTTON] = gad;
     
     /* 2nd row */
     ng.ng_TopEdge   += BUTTON_HEIGHT + 4;
@@ -328,7 +327,7 @@ static int _create_gadgets (void)
     ng.ng_TopEdge   += BUTTON_HEIGHT + 4;
     ng.ng_LeftEdge   = 16;
     ng.ng_GadgetText = "";
-    ng.ng_Width      = WINDOW_WIDTH - 32 - 4 - FILE_BUTTON_WIDTH;
+    ng.ng_Width      = WINDOW_WIDTH - 32 - 4 - REQUESTER_BUTTON_WIDTH;
     ng.ng_GadgetID   = GAD_ID_CMD_STRING;
     gad = CreateGadget (STRING_KIND, gad, &ng,
                     GT_Underscore, '_',
@@ -337,9 +336,9 @@ static int _create_gadgets (void)
     _gads[GAD_ID_CMD_STRING] = gad;
 
     ng.ng_LeftEdge   += ng.ng_Width + 4;
-    ng.ng_Width      = FILE_BUTTON_WIDTH;
+    ng.ng_Width      = REQUESTER_BUTTON_WIDTH;
     ng.ng_Height     = BUTTON_HEIGHT;
-    ng.ng_GadgetText = "_REXX";
+    ng.ng_GadgetText = "_Cmd";
     ng.ng_GadgetID   = GAD_ID_CMD_BUTTON;
     gad = CreateGadget (BUTTON_KIND, gad, &ng,
                     GT_Underscore, '_',
@@ -412,7 +411,7 @@ static void _open_filerequester (FR_TYPE type)
         } else if (type == FR_TYPE_FILE) {
             CopyMem (fr->rf_Dir, _tmp_file, strlen (fr->rf_Dir) + 1);
             AddPart (_tmp_file, fr->rf_File, TMP_SIZE);
-            GT_SetGadgetAttrs (_gads[GAD_ID_FILE_STRING], _window, NULL, GTST_String, _tmp_file);
+            GT_SetGadgetAttrs (_gads[GAD_ID_PATH_STRING], _window, NULL, GTST_String, _tmp_file);
         }
     }
     FreeAslRequest (fr);
