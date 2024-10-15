@@ -1,0 +1,29 @@
+========
+EXECUTER
+========
+
+Small utility to run command or script when some action happens to file or
+directory. Possible actions are modify, delete or create. Multiple files and
+directories are supported.
+
+Preferences file is human readable and editable using text editor without
+Executer-preferences editor.
+
+Check the Executer.guide for further information.
+
+------------
+REQUIREMENTS
+------------
+
+Amiga computer with 3.x kickstart and 1MB of memory. Also MorphOS version is
+build. 
+
+Suitable Filesystem for dos.library:s notify requester. Yes, support from
+filesystem is required.
+
+Most common filesystems were tested to work: FFS, SFS and PFS-aio.
+
+RAM disk and UAEs directory drives also works.
+
+Also some network filesystem likes were tested: Samba, NFS, FTPMount and
+NetFS-revised.

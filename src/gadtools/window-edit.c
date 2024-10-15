@@ -57,7 +57,7 @@ static UWORD _topborder = 0;
 
 static struct Window *_window = NULL;
 static struct Gadget *_glist = NULL;
-static struct Gadget *_gads[GAD_ID_LAST];
+static struct Gadget *_gads[GAD_ID_LAST] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 
 #define TMP_SIZE 1024
 static STRPTR _path_str = NULL;

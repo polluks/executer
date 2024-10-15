@@ -60,7 +60,7 @@ static void *_visualinfo = NULL;
 
 static struct Window *_window = NULL;
 static struct Gadget *_glist = NULL;
-static struct Gadget *_gads[GAD_ID_LAST];
+static struct Gadget *_gads[GAD_ID_LAST] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL};
 
 static int _count = 0;
 static struct List *_list = NULL;
@@ -398,7 +398,7 @@ static int _clear_list (void)
 {
     struct gadget_item *item, *next;
 
-    GT_SetGadgetAttrs (_gads[GAD_ID_LIST], _window, NULL, GTLV_Labels, "~0");
+    if (_visible == TRUE) GT_SetGadgetAttrs (_gads[GAD_ID_LIST], _window, NULL, GTLV_Labels, "~0");
     _current_index = -1;
 
     _count = 0;

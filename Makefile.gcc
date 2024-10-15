@@ -1,8 +1,8 @@
 CC=m68k-amigaos-gcc
 RM=rm -f
 
-CFLAGS=-I. -Isrc -O2 -Wall -Werror
-LDFLAGS=-lamiga
+CFLAGS=-I. -Isrc -O2 -Wall -Werror -noixemul -mcpu=68000
+LDFLAGS=-lamiga -noixemul -mcpu=68000
 
 TARGET=Executer
 
