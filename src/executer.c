@@ -3,6 +3,8 @@
 #include <exec/types.h>
 #include <dos/dos.h>
 
+#include <clib/exec_protos.h>
+
 #include "libraries.h"
 #include "arexx.h"
 #include "notify.h"
@@ -30,7 +32,6 @@ static ULONG _rx_signal, _notify_signal, _win_signal;
 
 int main (int argc, char **argv)
 {
-        BOOL send_window_show_hide = FALSE;
         int retval;
         ULONG signals;
 	/* Open libraries */
@@ -92,7 +93,7 @@ int main (int argc, char **argv)
                 fprintf (stderr, "callkng window_dispose()\n");
                 window_dispose (&_quit);
                 _win_signal = window_signal ();
-                fprintf (stderr, "win signal:%lu\n", _win_signal);
+                fprintf (stderr, "win signal:%lu\n", (long unsigned int)_win_signal);
             }
             if (signals & SIGBREAKF_CTRL_C) {
                 _quit = TRUE;
@@ -114,7 +115,7 @@ static void _rx_show (struct RexxMsg *msg, const char *args)
         fprintf (stderr, "SHOW failed.\n");
     }
     _win_signal = window_signal ();
-    fprintf (stderr, "%s: New signal %lu.\n", "SHOW", _win_signal);
+    fprintf (stderr, "%s: New signal %lu.\n", "SHOW", (long unsigned int)_win_signal);
 }
 
 static void _rx_hide (struct RexxMsg *msg, const char *args)
@@ -124,7 +125,7 @@ static void _rx_hide (struct RexxMsg *msg, const char *args)
         fprintf (stderr, "HIDE failed.\n");
     }
     _win_signal = window_signal ();
-    fprintf (stderr, "%s: New signal %lu.\n", "HIDE", _win_signal);
+    fprintf (stderr, "%s: New signal %lu.\n", "HIDE", (long unsigned int)_win_signal);
 }
 
 static void _rx_quit (struct RexxMsg *msg, const char *args)

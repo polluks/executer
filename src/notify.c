@@ -1,13 +1,17 @@
 #include <stdio.h>
+#include <string.h>
 
 #include <exec/exec.h>
+#include <exec/lists.h>
 #include <dos/notify.h>
 
 #include <clib/dos_protos.h>
 #include <clib/exec_protos.h>
+#include <clib/alib_protos.h>
 
 #include "notify.h"
 #include "utility.h"
+#include "spawn.h"
 
 #define MAX_NOTIFIES 100
 ULONG _signal;
@@ -68,7 +72,7 @@ void notify_dispose (void)
         return;
     }
 
-    while (msg = (struct NotifyMessage *)GetMsg (_port)) {
+    while ((msg = (struct NotifyMessage *)GetMsg (_port)) != NULL) {
             reason = NOTIFY_REASON_MODIFY;
             item = (struct notify_item *)msg->nm_NReq->nr_UserData;
 	    ReplyMsg ((struct Message *)msg);
@@ -129,7 +133,7 @@ int notify_add (const char *path, const char *command, int reason, notify_cb_t c
     CopyMem (path, item->path, strlen (path) + 1);
     CopyMem (command, item->command, strlen (command) + 1);
 
-    item->node.ln_Name = (UBYTE *)item->path;
+    item->node.ln_Name = (char *)item->path;
 
     item->request.nr_Name = (UBYTE *)item->path;
     item->request.nr_Flags = NRF_SEND_MESSAGE | NRF_WAIT_REPLY;
@@ -225,7 +229,7 @@ int notify_clear (void)
     }
 
     item = (struct notify_item *)_list->lh_Head;
-    while (next = (struct notify_item *)item->node.ln_Succ) {
+    while ((next = (struct notify_item *)item->node.ln_Succ) != NULL) {
         EndNotify (&(item->request));
         Remove ((struct Node *) item);
         FreeMem (item, sizeof (struct notify_item));

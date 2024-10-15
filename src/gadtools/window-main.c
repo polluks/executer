@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include <exec/exec.h>
 #include <exec/lists.h>
@@ -11,16 +12,19 @@
 #include <clib/graphics_protos.h>
 #include <clib/intuition_protos.h>
 #include <clib/gadtools_protos.h>
+#include <clib/alib_protos.h>
 
 #include "window-main.h"
+#include "window-edit.h"
 #include "../notify.h"
+#include "../prefs.h"
 
 #define WINDOW_TITLE "Executer"
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 160
 
 /* common */
-#define BUTTON_HEIGHT 14
+#define BUTTON_HEIGHT 16
 /* file selectors */
 #define FILE_BUTTON_WIDTH 48
 #define ACTION_CYCLE_WIDTH 80
@@ -182,7 +186,7 @@ static BOOL _handle_gadget_event (struct Gadget *gad, UWORD code)
     struct gadget_item *item = NULL;
     BOOL v = _visible;
 
-    fprintf (stderr, "main gadget id: :%lu\n", (ULONG)gad->GadgetID);
+    fprintf (stderr, "main gadget id: :%lu\n", (unsigned long int)gad->GadgetID);
     switch (gad->GadgetID)
     {
     case GAD_ID_LIST: {
@@ -279,7 +283,7 @@ static int _create_gadgets (void)
     ng.ng_TopEdge    = ng.ng_TopEdge + ng.ng_Height;
     ng.ng_Width      = BUTTON_WIDTH;
     ng.ng_Height     = BUTTON_HEIGHT;
-    ng.ng_GadgetText = "_Add";
+    ng.ng_GadgetText = (UBYTE *)"_Add";
     ng.ng_GadgetID   = GAD_ID_ADD_BUTTON;
     gad = CreateGadget (BUTTON_KIND, gad, &ng,
                     GT_Underscore, '_',
@@ -287,7 +291,7 @@ static int _create_gadgets (void)
     if (gad == NULL) return 1;
     _gads[GAD_ID_ADD_BUTTON] = gad;
     
-    ng.ng_GadgetText = "_Edit";
+    ng.ng_GadgetText = (UBYTE *)"_Edit";
     ng.ng_LeftEdge   = WINDOW_WIDTH/2 - BUTTON_WIDTH/2;
     ng.ng_GadgetID   = GAD_ID_EDIT_BUTTON;
     gad = CreateGadget (BUTTON_KIND, gad, &ng,
@@ -296,7 +300,7 @@ static int _create_gadgets (void)
     if (gad == NULL) return 1;
     _gads[GAD_ID_EDIT_BUTTON] = gad;
 
-    ng.ng_GadgetText = "_Remove";
+    ng.ng_GadgetText = (UBYTE *)"_Remove";
     ng.ng_LeftEdge   = WINDOW_WIDTH - BUTTON_WIDTH - 16;
     ng.ng_GadgetID   = GAD_ID_REMOVE_BUTTON;
     gad = CreateGadget (BUTTON_KIND, gad, &ng,
@@ -310,7 +314,7 @@ static int _create_gadgets (void)
     ng.ng_TopEdge    = WINDOW_HEIGHT - 20;
     ng.ng_Width      = BUTTON_WIDTH;
     ng.ng_Height     = BUTTON_HEIGHT;
-    ng.ng_GadgetText = "_Save";
+    ng.ng_GadgetText = (UBYTE *)"_Save";
     ng.ng_GadgetID   = GAD_ID_SAVE;
     ng.ng_Flags      = 0;
     gad = CreateGadget (BUTTON_KIND, gad, &ng,
@@ -320,7 +324,7 @@ static int _create_gadgets (void)
     _gads[GAD_ID_SAVE] = gad;
 
     ng.ng_LeftEdge   = WINDOW_WIDTH/2 - BUTTON_WIDTH/2;
-    ng.ng_GadgetText = "_Use";
+    ng.ng_GadgetText = (UBYTE *)"_Use";
     ng.ng_GadgetID   = GAD_ID_USE;
     ng.ng_Flags      = 0;
     gad = CreateGadget (BUTTON_KIND, gad, &ng,
@@ -330,7 +334,7 @@ static int _create_gadgets (void)
     _gads[GAD_ID_USE] = gad;
     
     ng.ng_LeftEdge   = WINDOW_WIDTH - BUTTON_WIDTH - 16;
-    ng.ng_GadgetText = "_Cancel";
+    ng.ng_GadgetText = (UBYTE *)"_Cancel";
     ng.ng_GadgetID   = GAD_ID_CANCEL;
     ng.ng_Flags      = 0;
     gad = CreateGadget (BUTTON_KIND, gad, &ng,
@@ -355,7 +359,7 @@ static struct gadget_item *_item_at_index (int index)
     }
 
     item = (struct gadget_item *)_list->lh_Head;
-    while (next = (struct gadget_item *)item->node.ln_Succ) {
+    while ((next = (struct gadget_item *)item->node.ln_Succ) != NULL) {
         if (index == cur++) {
             return item;
         }
@@ -403,11 +407,13 @@ static int _clear_list (void)
     }
 
     item = (struct gadget_item *)_list->lh_Head;
-    while (next = (struct gadget_item *)item->node.ln_Succ) {
+    while ((next = (struct gadget_item *)item->node.ln_Succ) != NULL) {
         Remove ((struct Node *) item);
         FreeMem (item, sizeof (struct gadget_item));
         item = next;
     }
+
+    return 0;
 }
 
 int window_main_setup_list (struct List *nlist)
@@ -421,7 +427,7 @@ int window_main_setup_list (struct List *nlist)
     _clear_list ();
 
     nitem = (struct notify_item *)nlist->lh_Head;
-    while (nnext = (struct notify_item *)nitem->node.ln_Succ) {
+    while ((nnext = (struct notify_item *)nitem->node.ln_Succ) != NULL) {
         if (nitem->cb != NULL) { /* skip internals */
             nitem = nnext;
             continue;

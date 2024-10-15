@@ -18,33 +18,33 @@ struct Library *GadToolsBase = NULL;
 
 int libraries_open (void)
 {
-    DOSBase = (struct DosLibrary *)OpenLibrary ("dos.library", 37L); /* kick 2.04/5 required */
+    DOSBase = (struct DosLibrary *)OpenLibrary ((UBYTE *)"dos.library", 37L); /* kick 2.04/5 required */
     if (DOSBase == NULL) {
         return 1;
     }
-    IntuitionBase = (struct IntuitionBase *)OpenLibrary ("intuition.library", 0L);
+    IntuitionBase = (struct IntuitionBase *)OpenLibrary ((UBYTE *)"intuition.library", 0L);
     if (IntuitionBase == NULL) {
         libraries_close ();
         return 1;
     }
-    RexxSysBase = OpenLibrary ("rexxsyslib.library", 0L);
+    RexxSysBase = OpenLibrary ((UBYTE *)"rexxsyslib.library", 0L);
     if (RexxSysBase == NULL) {
         libraries_close ();
         return 1;
     }
 #ifdef USE_MUI
 #else
-    GfxBase = OpenLibrary ("graphics.library", 0L);
+    GfxBase = OpenLibrary ((UBYTE *)"graphics.library", 0L);
     if (GfxBase == NULL) {
         libraries_close ();
         return 1;
     }
-    GadToolsBase = OpenLibrary ("gadtools.library", 0L);
+    GadToolsBase = OpenLibrary ((UBYTE *)"gadtools.library", 0L);
     if (GadToolsBase == NULL) {
         libraries_close ();
         return 1;
     }
-    AslBase = OpenLibrary ("asl.library", 0L);
+    AslBase = OpenLibrary ((UBYTE *)"asl.library", 0L);
     if (AslBase == NULL) {
         libraries_close ();
         return 1;

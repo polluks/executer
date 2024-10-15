@@ -1,8 +1,7 @@
-CC=vc
+CC=m68k-amigaos-gcc
 RM=rm -f
 
-CONFIG=+aos68k -cpu=68000 -fpu=0
-CFLAGS=-I. -Isrc -O3
+CFLAGS=-I. -Isrc -O2 -Wall -Werror
 LDFLAGS=-lamiga
 
 TARGET=Executer
@@ -30,10 +29,10 @@ OBJS=$(SRCS:.c=.o)
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(CONFIG) $(LDFLAGS) $(OBJS) -o $@
+	$(CC) $(LDFLAGS) $(OBJS) -o $@
 
 $(OBJS): %.o: %.c
-	$(CC) $(CONFIG) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
 	$(RM) $(OBJS) $(TARGET)

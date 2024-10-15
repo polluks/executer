@@ -7,12 +7,13 @@
 
 BOOL utility_exists (const char *path)
 {
+#ifdef DEBUG_UTILITY
     LONG error;
     STRPTR buf;
+#endif
     BOOL ret = FALSE;
-    BPTR l = Lock (path, ACCESS_READ);
+    BPTR l = Lock ((UBYTE *)path, ACCESS_READ);
     if (l != 0) {
-        UnLock (l);
         ret = TRUE;
     }
 #ifdef DEBUG_UTILITY
@@ -26,6 +27,7 @@ BOOL utility_exists (const char *path)
         }
     }
 #endif
+    UnLock (l);
     return ret;
 }
 

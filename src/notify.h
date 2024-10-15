@@ -28,7 +28,7 @@ struct notify_item
 int notify_init (void);
 void notify_free (void);
 
-ULONG *notify_signals (void);
+ULONG notify_signal (void);
 void notify_dispose (void);
 
 int notify_add (const char *path, const char *command, int reason, notify_cb_t cb);

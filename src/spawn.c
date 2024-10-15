@@ -7,7 +7,7 @@
 
 #include "spawn.h"
 
-static UBYTE *_con="CON:0/40/640/150/Executer/auto/close/wait";
+static UBYTE *_con=(UBYTE *)"CON:0/40/640/150/Executer/auto/close/wait";
 
 int spawn_start (const char *cmd)
 {

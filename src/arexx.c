@@ -28,8 +28,8 @@ int arexx_init (const char *name, struct rx_command  *list)
 {
     int retval = 1;
     Forbid ();
-    if (FindPort (name) == NULL) {
-        _port = (struct MsgPort *)CreatePort (name, 0L);
+    if (FindPort ((UBYTE *)name) == NULL) {
+        _port = (struct MsgPort *)CreatePort ((UBYTE *)name, 0L);
     }
     Permit ();
     if (_port != NULL) {
@@ -65,7 +65,6 @@ void arexx_free (void)
 int arexx_dispose (void)
 {
     struct rx_command *rcmd;
-    int i;
     char *args;
     size_t len = 0;
     struct RexxMsg *msg;

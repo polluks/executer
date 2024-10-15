@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include <exec/exec.h>
 #include <dos/dos.h>
 
@@ -37,7 +40,7 @@ int prefs_load (void)
     }
 
     notify_clear ();
-    fh = Open (PREFS_PATH_ENV, MODE_OLDFILE);
+    fh = Open ((UBYTE *)PREFS_PATH_ENV, MODE_OLDFILE);
     if (fh != 0) {
         while ((buf2 = (char *)FGets (fh, (STRPTR)buf, 1024)) != NULL) {
             len = strlen (buf2);
@@ -96,7 +99,7 @@ static int _save_to (const char *path)
         return 1;
     }
 
-    if ((fh = Open (path, MODE_NEWFILE)) == 0) {
+    if ((fh = Open ((UBYTE *)path, MODE_NEWFILE)) == 0) {
         fprintf (stderr, "Prefs: could not write to save path: %s.\n", path);
         return 1;
     }
@@ -134,7 +137,7 @@ static int _save_to (const char *path)
     }
 
     if (err != 0) {
-        fprintf (stderr, "Error : %ld\n", err);
+        fprintf (stderr, "Error : %d\n", (int)err);
         ret = 1;
     }
 

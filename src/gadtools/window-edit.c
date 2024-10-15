@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include <exec/exec.h>
 #include <intuition/intuition.h>
@@ -10,14 +11,17 @@
 #include <clib/graphics_protos.h>
 #include <clib/intuition_protos.h>
 #include <clib/gadtools_protos.h>
+#include <clib/asl_protos.h>
+#include <clib/dos_protos.h>
 
 #include "window-edit.h"
+#include "../notify.h"
 
 #define WINDOW_WIDTH 600
-#define WINDOW_HEIGHT 160
+#define WINDOW_HEIGHT 116
 
 /* common */
-#define BUTTON_HEIGHT 14
+#define BUTTON_HEIGHT 16
 /* file selectors */
 #define REQUESTER_BUTTON_WIDTH 52
 /* Ok Cancel */
@@ -31,11 +35,12 @@ typedef enum {
 enum {
     GAD_ID_PATH_STRING,
     GAD_ID_REQUESTER_BUTTON,
-    GAD_ID_ACTION1_TEXT,
-    GAD_ID_ACTION_MODIFY_CHECK,
-    GAD_ID_ACTION_REMOVE_CHECK,
     GAD_ID_ACTION_CREATE_CHECK,
-    GAD_ID_ACTION2_TEXT,
+    GAD_ID_ACTION_DELETE_CHECK,
+    GAD_ID_ACTION_MODIFY_CHECK,
+    GAD_ID_ACTION_CREATE_TEXT,
+    GAD_ID_ACTION_DELETE_TEXT,
+    GAD_ID_ACTION_MODIFY_TEXT,
     GAD_ID_CMD_STRING,
     GAD_ID_CMD_BUTTON,
     GAD_ID_OK,
@@ -55,8 +60,9 @@ static struct Gadget *_glist = NULL;
 static struct Gadget *_gads[GAD_ID_LAST];
 
 #define TMP_SIZE 1024
-static STRPTR _tmp_file = NULL;
-static STRPTR _tmp_script = NULL;
+static STRPTR _path_str = NULL;
+static STRPTR _command_str = NULL;
+static int _reason = 0;
 static int _index = -1;
 static char *_title = "";
 
@@ -66,6 +72,8 @@ static int _create_gadgets (void);
 
 static void _open_filerequester (FR_TYPE type);
 
+extern struct Library *GadToolsBase;
+
 int window_edit_init (struct TextAttr *textattr, void *visualinfo, UWORD topborder)
 {
     _textattr = textattr;
@@ -73,20 +81,20 @@ int window_edit_init (struct TextAttr *textattr, void *visualinfo, UWORD topbord
     _topborder = topborder;
     if (_create_gadgets () != 0) {
         fprintf (stderr, "Could not create edit gadgets\n");
-        window_free ();
+        window_edit_free ();
         return 1;
     }
 
-    _tmp_file = (STRPTR)AllocMem (TMP_SIZE, MEMF_ANY|MEMF_CLEAR);
-    if (_tmp_file == NULL) {
+    _path_str = (STRPTR)AllocMem (TMP_SIZE, MEMF_ANY|MEMF_CLEAR);
+    if (_path_str == NULL) {
         fprintf (stderr, "Could not alloc mem to tmp file string\n");
-        window_free ();
+        window_edit_free ();
         return 1;
     }
-    _tmp_script = (STRPTR)AllocMem (TMP_SIZE, MEMF_ANY|MEMF_CLEAR);
-    if (_tmp_script == NULL) {
+    _command_str = (STRPTR)AllocMem (TMP_SIZE, MEMF_ANY|MEMF_CLEAR);
+    if (_command_str == NULL) {
         fprintf (stderr, "Could not alloc memory to tmp script string\n");
-        window_free ();
+        window_edit_free ();
         return 1;
     }
     return 0;
@@ -98,8 +106,8 @@ void window_edit_free (void)
     if (window_edit_visibility (FALSE) != 0) {
         return;
     }
-    if (_tmp_file != NULL) FreeMem (_tmp_file, TMP_SIZE);
-    if (_tmp_script != NULL) FreeMem (_tmp_script, TMP_SIZE);
+    if (_path_str != NULL) FreeMem (_path_str, TMP_SIZE);
+    if (_command_str != NULL) FreeMem (_command_str, TMP_SIZE);
 }
 
 ULONG window_edit_signal (void)
@@ -135,6 +143,7 @@ BOOL window_edit_is_visible (void)
 
 void window_edit_dispose (BOOL *quit)
 {
+    char *buf;
     struct IntuiMessage *imsg;
     ULONG imsgClass;
     UWORD imsgCode;
@@ -170,6 +179,13 @@ void window_edit_dispose (BOOL *quit)
         }
     }
 
+    if (v == FALSE) {
+       buf = (char *)((struct StringInfo *)_gads[GAD_ID_PATH_STRING]->SpecialInfo)->Buffer;
+       CopyMem (buf, _path_str, strlen (buf) + 1);
+       buf = (char *)((struct StringInfo *)_gads[GAD_ID_CMD_STRING]->SpecialInfo)->Buffer;
+       CopyMem (buf, _command_str, strlen (buf) + 1);
+       fprintf (stderr, "path:%s, command:%s, reason:%s\n", _path_str, _command_str, notify_reason_bitfield_to_string (_reason) );
+    }
     if (window_edit_visibility (v) != 0) {
         fprintf (stderr, "Window change visibility failed. Quiting...\n");
         *quit = TRUE;
@@ -179,10 +195,14 @@ void window_edit_dispose (BOOL *quit)
 int window_edit_add (int index)
 {
     _index = index;
-    _tmp_file[0] = '\0';
-    GT_SetGadgetAttrs (_gads[GAD_ID_PATH_STRING], _window, NULL, GTST_String, _tmp_file);
-    _tmp_script[0] = '\0';
-    GT_SetGadgetAttrs (_gads[GAD_ID_CMD_STRING], _window, NULL, GTST_String, _tmp_script);
+    _path_str[0] = '\0';
+    _command_str[0] = '\0';
+    GT_SetGadgetAttrs (_gads[GAD_ID_PATH_STRING], _window, NULL, GTST_String, _path_str);
+    GT_SetGadgetAttrs (_gads[GAD_ID_CMD_STRING], _window, NULL, GTST_String, _command_str);
+    _reason = _reason | NOTIFY_REASON_MODIFY;
+    GT_SetGadgetAttrs (_gads[GAD_ID_ACTION_MODIFY_CHECK], _window, NULL, GTCB_Checked, TRUE);
+    GT_SetGadgetAttrs (_gads[GAD_ID_ACTION_CREATE_CHECK], _window, NULL, GTCB_Checked, FALSE);
+    GT_SetGadgetAttrs (_gads[GAD_ID_ACTION_DELETE_CHECK], _window, NULL, GTCB_Checked, FALSE);
 
     _title = "Add item";
     return window_edit_visibility (TRUE);
@@ -191,10 +211,27 @@ int window_edit_add (int index)
 int window_edit_edit (int index, struct notify_item *item)
 {
     _index = index;
-    CopyMem (item->path, _tmp_file, strlen (item->path) + 1);
-    GT_SetGadgetAttrs (_gads[GAD_ID_PATH_STRING], _window, NULL, GTST_String, _tmp_file);
-    CopyMem (item->command, _tmp_script, strlen (item->command) + 1);
-    GT_SetGadgetAttrs (_gads[GAD_ID_CMD_STRING], _window, NULL, GTST_String, _tmp_script);
+    CopyMem (item->path, _path_str, strlen (item->path) + 1);
+    GT_SetGadgetAttrs (_gads[GAD_ID_PATH_STRING], _window, NULL, GTST_String, _path_str);
+    CopyMem (item->command, _command_str, strlen (item->command) + 1);
+    GT_SetGadgetAttrs (_gads[GAD_ID_CMD_STRING], _window, NULL, GTST_String, _command_str);
+    _reason = item->reason;
+    if (item->reason & NOTIFY_REASON_CREATE) {
+        GT_SetGadgetAttrs (_gads[GAD_ID_ACTION_CREATE_CHECK], _window, NULL, GTCB_Checked, TRUE);
+    } else {
+        GT_SetGadgetAttrs (_gads[GAD_ID_ACTION_CREATE_CHECK], _window, NULL, GTCB_Checked, FALSE);
+    }
+    if (item->reason & NOTIFY_REASON_DELETE) {
+        GT_SetGadgetAttrs (_gads[GAD_ID_ACTION_DELETE_CHECK], _window, NULL, GTCB_Checked, TRUE);
+    } else {
+        GT_SetGadgetAttrs (_gads[GAD_ID_ACTION_DELETE_CHECK], _window, NULL, GTCB_Checked, FALSE);
+    }
+    if (item->reason & NOTIFY_REASON_MODIFY) {
+        GT_SetGadgetAttrs (_gads[GAD_ID_ACTION_MODIFY_CHECK], _window, NULL, GTCB_Checked, TRUE);
+    } else {
+        GT_SetGadgetAttrs (_gads[GAD_ID_ACTION_MODIFY_CHECK], _window, NULL, GTCB_Checked, FALSE);
+    }
+
     /* FIXME: item->reason */
     _title = "Edit item";
     return window_edit_visibility (TRUE);
@@ -205,7 +242,7 @@ static BOOL _handle_gadget_event (struct Gadget *gad, UWORD code)
 {
     BOOL v = _visible;
 
-    fprintf (stderr, "edit gadget id: :%lu\n", (ULONG)gad->GadgetID);
+    fprintf (stderr, "edit gadget id: :%lu\n", (unsigned long int)gad->GadgetID);
     switch (gad->GadgetID)
     {
     case GAD_ID_PATH_STRING: {
@@ -222,7 +259,28 @@ static BOOL _handle_gadget_event (struct Gadget *gad, UWORD code)
          _open_filerequester (FR_TYPE_CMD);
     }
     break;
-    case GAD_ID_ACTION_REMOVE_CHECK: {
+    case GAD_ID_ACTION_CREATE_CHECK: {
+        if (gad->Flags & GFLG_SELECTED) {
+            _reason = _reason | NOTIFY_REASON_CREATE;
+        } else {
+            _reason = _reason & ~NOTIFY_REASON_CREATE;
+        }
+    }
+    break;
+    case GAD_ID_ACTION_DELETE_CHECK: {
+        if (gad->Flags & GFLG_SELECTED) {
+            _reason = _reason | NOTIFY_REASON_DELETE;
+        } else {
+            _reason = _reason & ~NOTIFY_REASON_DELETE;
+        }
+    }
+    break;
+    case GAD_ID_ACTION_MODIFY_CHECK: {
+        if (gad->Flags & GFLG_SELECTED) {
+            _reason = _reason | NOTIFY_REASON_MODIFY;
+        } else {
+            _reason = _reason & ~NOTIFY_REASON_MODIFY;
+        }
     }
     break;
     case GAD_ID_OK: {
@@ -271,29 +329,34 @@ static int _create_gadgets (void)
     struct NewGadget ng;
     struct Gadget *gad;
     UWORD top = _topborder;
+    UWORD top2 = 0;
+    UWORD top3 = 0;
 
     gad = CreateContext (&_glist);
 
     ng.ng_TextAttr   = _textattr;
     ng.ng_VisualInfo = _visualinfo;
 
-    /* top */
-    ng.ng_TopEdge   = top;
+    /* 1st row - File */
+    ng.ng_TopEdge    = top;
     ng.ng_LeftEdge   = 16;
-    ng.ng_Width      = WINDOW_WIDTH - 32 - 4 - REQUESTER_BUTTON_WIDTH;
+    ng.ng_Width      = WINDOW_WIDTH - 32 - 4 - 8 - REQUESTER_BUTTON_WIDTH;
     ng.ng_Height     = BUTTON_HEIGHT;
-    ng.ng_GadgetText = "";
+    ng.ng_GadgetText = (UBYTE *)"";
     ng.ng_GadgetID   = GAD_ID_PATH_STRING;
     gad = CreateGadget (STRING_KIND, gad, &ng,
-                    GT_Underscore, '_',
                     GTST_MaxChars, TMP_SIZE - 1,
+                    GA_Immediate, TRUE,
                     TAG_END);
     if (gad == NULL) return 1;
     _gads[GAD_ID_PATH_STRING] = gad;
-    
+    if (GadToolsBase->lib_Version == 37) {
+        gad->Activation |= GACT_IMMEDIATE;
+    }
+ 
     ng.ng_LeftEdge  += ng.ng_Width + 4;
     ng.ng_Width      = REQUESTER_BUTTON_WIDTH;
-    ng.ng_GadgetText = "_Path";
+    ng.ng_GadgetText = (UBYTE *)"_Path";
     ng.ng_GadgetID   = GAD_ID_REQUESTER_BUTTON;
     gad = CreateGadget (BUTTON_KIND, gad, &ng,
                     GT_Underscore, '_',
@@ -301,44 +364,92 @@ static int _create_gadgets (void)
     if (gad == NULL) return 1;
     _gads[GAD_ID_REQUESTER_BUTTON] = gad;
     
-    /* 2nd row */
-    ng.ng_TopEdge   += BUTTON_HEIGHT + 4;
+    /* 2nd row - Action check boxes */
+    ng.ng_TopEdge   += BUTTON_HEIGHT + 4 + 4;
+    top2             = ng.ng_TopEdge;
     ng.ng_LeftEdge   = 16;
-    ng.ng_Width      = 40;
-    ng.ng_GadgetText = "WHEN";
-    ng.ng_GadgetID   = GAD_ID_ACTION1_TEXT;
-    gad = CreateGadget (TEXT_KIND, gad, &ng,
+    ng.ng_Width      = 26;
+    ng.ng_Height     = 11;
+    ng.ng_GadgetText = NULL;
+    ng.ng_GadgetID   = GAD_ID_ACTION_CREATE_CHECK;
+    gad = CreateGadget (CHECKBOX_KIND, gad, &ng,
                     TAG_END);
     if (gad == NULL) return 1;
-    _gads[GAD_ID_ACTION1_TEXT] = gad;
+    _gads[GAD_ID_ACTION_CREATE_CHECK] = gad;
     
-    /*FIXME: add checkboxs */ 
-
-    ng.ng_LeftEdge   = WINDOW_WIDTH - 40 - 16;
-    ng.ng_Width      = 40;
-    ng.ng_GadgetText = "RUN";
-    ng.ng_GadgetID   = GAD_ID_ACTION2_TEXT;
+    top3             = top2;
+    ng.ng_TopEdge    = top3;
+    ng.ng_LeftEdge  += ng.ng_Width + 4;
+    ng.ng_Width      = 64;
+    ng.ng_GadgetText = (UBYTE *)"Create";
+    ng.ng_GadgetID   = GAD_ID_ACTION_CREATE_TEXT;
     gad = CreateGadget (TEXT_KIND, gad, &ng,
-                    TAG_END);
-    if (gad == NULL) return 1;
-    _gads[GAD_ID_ACTION2_TEXT] = gad;
-    
-    /* 3th row */
-    ng.ng_TopEdge   += BUTTON_HEIGHT + 4;
-    ng.ng_LeftEdge   = 16;
-    ng.ng_GadgetText = "";
-    ng.ng_Width      = WINDOW_WIDTH - 32 - 4 - REQUESTER_BUTTON_WIDTH;
-    ng.ng_GadgetID   = GAD_ID_CMD_STRING;
-    gad = CreateGadget (STRING_KIND, gad, &ng,
                     GT_Underscore, '_',
                     TAG_END);
     if (gad == NULL) return 1;
+    _gads[GAD_ID_ACTION_CREATE_TEXT] = gad;
+    
+    ng.ng_TopEdge     = top2;
+    ng.ng_LeftEdge   += ng.ng_Width + 8;
+    ng.ng_GadgetText = NULL;
+    ng.ng_Width      = 26;
+    ng.ng_GadgetID   = GAD_ID_ACTION_DELETE_CHECK;
+    gad = CreateGadget (CHECKBOX_KIND, gad, &ng,
+                    TAG_END);
+    if (gad == NULL) return 1;
+    _gads[GAD_ID_ACTION_DELETE_CHECK] = gad;
+    
+    ng.ng_TopEdge     = top3;
+    ng.ng_LeftEdge   += ng.ng_Width + 4;
+    ng.ng_Width      = 64;
+    ng.ng_GadgetText = (UBYTE *)"Delete";
+    ng.ng_GadgetID   = GAD_ID_ACTION_DELETE_TEXT;
+    gad = CreateGadget (TEXT_KIND, gad, &ng,
+                    GT_Underscore, '_',
+                    TAG_END);
+    if (gad == NULL) return 1;
+    _gads[GAD_ID_ACTION_DELETE_TEXT] = gad;
+    
+    ng.ng_TopEdge     = top2;
+    ng.ng_LeftEdge   += ng.ng_Width + 8;
+    ng.ng_GadgetText = NULL;
+    ng.ng_Width      = 26;
+    ng.ng_GadgetID   = GAD_ID_ACTION_MODIFY_CHECK;
+    gad = CreateGadget (CHECKBOX_KIND, gad, &ng,
+                    TAG_END);
+    if (gad == NULL) return 1;
+    _gads[GAD_ID_ACTION_MODIFY_CHECK] = gad;
+    
+    ng.ng_TopEdge     = top3;
+    ng.ng_LeftEdge   += ng.ng_Width + 4;
+    ng.ng_Width      = 64;
+    ng.ng_GadgetText = (UBYTE *)"Modify";
+    ng.ng_GadgetID   = GAD_ID_ACTION_MODIFY_TEXT;
+    gad = CreateGadget (TEXT_KIND, gad, &ng,
+                    GT_Underscore, '_',
+                    TAG_END);
+    if (gad == NULL) return 1;
+    _gads[GAD_ID_ACTION_MODIFY_TEXT] = gad;
+    
+    /* 3th row - command */
+    ng.ng_TopEdge   += BUTTON_HEIGHT + 4;
+    ng.ng_LeftEdge   = 16;
+    ng.ng_Height     = BUTTON_HEIGHT;
+    ng.ng_GadgetText = (UBYTE *)"";
+    ng.ng_Width      = WINDOW_WIDTH - 32 - 4 - 8 - REQUESTER_BUTTON_WIDTH;
+    ng.ng_GadgetID   = GAD_ID_CMD_STRING;
+    gad = CreateGadget (STRING_KIND, gad, &ng,
+                    GA_Immediate, TRUE,
+                    TAG_END);
+    if (gad == NULL) return 1;
     _gads[GAD_ID_CMD_STRING] = gad;
+    if (GadToolsBase->lib_Version == 37) {
+        gad->Activation |= GACT_IMMEDIATE;
+    }
 
     ng.ng_LeftEdge   += ng.ng_Width + 4;
     ng.ng_Width      = REQUESTER_BUTTON_WIDTH;
-    ng.ng_Height     = BUTTON_HEIGHT;
-    ng.ng_GadgetText = "_Cmd";
+    ng.ng_GadgetText = (UBYTE *)"_Cmd";
     ng.ng_GadgetID   = GAD_ID_CMD_BUTTON;
     gad = CreateGadget (BUTTON_KIND, gad, &ng,
                     GT_Underscore, '_',
@@ -352,7 +463,7 @@ static int _create_gadgets (void)
     ng.ng_TopEdge    = WINDOW_HEIGHT - 20;
     ng.ng_Width      = BUTTON_WIDTH;
     ng.ng_Height     = BUTTON_HEIGHT;
-    ng.ng_GadgetText = "_OK";
+    ng.ng_GadgetText = (UBYTE *)"_OK";
     ng.ng_GadgetID   = GAD_ID_OK;
     ng.ng_Flags      = 0;
     gad = CreateGadget (BUTTON_KIND, gad, &ng,
@@ -362,7 +473,7 @@ static int _create_gadgets (void)
     _gads[GAD_ID_OK] = gad;
 
     ng.ng_LeftEdge   = WINDOW_WIDTH - BUTTON_WIDTH - 16;
-    ng.ng_GadgetText = "_Cancel";
+    ng.ng_GadgetText = (UBYTE *)"_Cancel";
     ng.ng_GadgetID   = GAD_ID_CANCEL;
     ng.ng_Flags      = 0;
     gad = CreateGadget (BUTTON_KIND, gad, &ng,
@@ -386,7 +497,7 @@ static void _open_filerequester (FR_TYPE type)
         title = "Select command";
         pattern = "#?";
         path = "S:";
-    } else if (type == FR_TYPE_FILE) {
+    } else {  /* if (type == FR_TYPE_FILE) { */
         title = "Select FILE to inspect";
         pattern = "#?";
         path = "SYS:";
@@ -405,13 +516,13 @@ static void _open_filerequester (FR_TYPE type)
     }
     if (AslRequest(fr, 0L)) {
         if (type == FR_TYPE_CMD) {
-            CopyMem (fr->rf_Dir, _tmp_script, strlen (fr->rf_Dir) + 1);
-            AddPart (_tmp_script, fr->rf_File, TMP_SIZE);
-            GT_SetGadgetAttrs (_gads[GAD_ID_CMD_STRING], _window, NULL, GTST_String, _tmp_script);
+            CopyMem (fr->rf_Dir, _command_str, strlen ((char *)fr->rf_Dir) + 1);
+            AddPart (_command_str, fr->rf_File, TMP_SIZE);
+            GT_SetGadgetAttrs (_gads[GAD_ID_CMD_STRING], _window, NULL, GTST_String, _command_str);
         } else if (type == FR_TYPE_FILE) {
-            CopyMem (fr->rf_Dir, _tmp_file, strlen (fr->rf_Dir) + 1);
-            AddPart (_tmp_file, fr->rf_File, TMP_SIZE);
-            GT_SetGadgetAttrs (_gads[GAD_ID_PATH_STRING], _window, NULL, GTST_String, _tmp_file);
+            CopyMem (fr->rf_Dir, _path_str, strlen ((char *)fr->rf_Dir) + 1);
+            AddPart (_path_str, fr->rf_File, TMP_SIZE);
+            GT_SetGadgetAttrs (_gads[GAD_ID_PATH_STRING], _window, NULL, GTST_String, _path_str);
         }
     }
     FreeAslRequest (fr);

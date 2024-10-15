@@ -13,13 +13,14 @@
 
 #include "../window.h"
 #include "window-main.h"
+#include "window-edit.h"
 
 static struct Screen *_pubscreen = NULL;
 static struct TextFont *_font = NULL;
 static void *_visualinfo = NULL;
 
 static struct TextAttr topaz8 = {
-	"topaz.font", 8, 0, 0
+	(UBYTE *)"topaz.font", 8, 0, 0
 };
 
 int window_init (void)
