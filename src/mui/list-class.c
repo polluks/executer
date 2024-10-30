@@ -1,0 +1,278 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <libraries/mui.h>
+
+#include <proto/muimaster.h>
+#include <proto/alib.h> /* DoMetmod */
+#include <proto/exec.h> /* Wait */
+#include <proto/intuition.h> /* NewObject */
+#include <proto/dos.h> /* SplitName */
+
+#include "vapor.h" /* Class macros */
+
+#include "common.h"
+#include "objects.h"
+#include "classes.h"
+
+//#include "m68k.h"
+
+struct ExecuterListEntry
+{
+    char *line;
+};
+
+struct ExecuterListData
+{
+};
+
+#ifndef __MORPHOS__
+DEFHOOKFUNC2(APTR, List_Construct, APTR pool, struct ExecuterSongInfo *info)
+{
+    struct ExecuterListEntry *nentry = (struct ExecuterListEntry *)calloc (sizeof (struct ExecuterListEntry), 1);
+
+    nentry->info = info;
+    if (nentry->info == NULL) {
+        D(BUG((CONST_STRPTR)"nentry->info == NULL\n"));
+        return NULL;
+    }
+
+    nentry->line = "TST";
+
+    return (APTR)nentry;
+}
+
+DEFHOOKFUNC(void, List_Destruct, struct ExecuterListEntry *data)
+{
+    if (data == NULL) {
+        return;
+    }
+
+    if (data->line != NULL) {
+        //free (data->line);
+        data->line = NULL;
+    }
+
+    if (data->info != NULL) {
+        executer_song_free (data->info);
+        data->info = NULL;
+    }
+
+    free (data);
+}
+
+DEFHOOKFUNC2(APTR, List_Display, char **array, struct ExecuterListEntry *e)
+{
+    *array = (unsigned char *)e->line;
+
+    return 0;
+}
+
+DEFHOOKFUNC2(LONG, List_Compare, struct ExecuterListEntry *e1, struct ExecuterListEntry *e2)
+{
+    LONG result = 0;
+    //struct ExecuterListData *data = e1->data;
+
+    if (e1->info->pos < e2->info->pos) {
+        result = 1;
+    } else if (e1->info->pos > e2->info->pos) {
+        result = -1; 
+    }
+
+    //result *= data->order;
+
+    return result;
+}
+#endif
+
+/* new */
+DEFNEW(ExecuterList)
+{
+#ifdef __MORPHOS__
+    obj = DoSuperNew(cl, obj,
+#else // M68K
+    DEFHOOK(List_Construct);
+    DEFHOOK(List_Display);
+    DEFHOOK(List_Destruct);
+    DEFHOOK(List_Compare);
+    obj = DoSuperNew(cl, obj,
+        MUIA_List_ConstructHook, &List_Construct_hook,
+        MUIA_List_DisplayHook, &List_Display_hook,
+        MUIA_List_DestructHook, &List_Destruct_hook,
+        MUIA_List_CompareHook, &List_Compare_hook,
+#endif
+        MUIA_UserData, MO_Executer_List,
+        MUIA_CycleChain, 1,
+        MUIA_Dropable, FALSE,
+        MUIA_List_DragSortable, FALSE,
+        TAG_MORE, (((struct opSet *)msg)->ops_AttrList),
+        End;
+
+#if 0
+    if (obj) {
+        struct ExecuterListData *data = INST_DATA (cl, obj);
+    }
+#endif
+
+    return (ULONG)obj;
+}
+
+/* dispose */
+DEFDISP(ExecuterList)
+{
+    return DOSUPER;
+}
+
+/* get */
+DEFGET(ExecuterList)
+{
+    return DOSUPER;
+}
+
+/* set */
+DEFSET(ExecuterList)
+{
+    return DOSUPER;
+}
+
+#ifdef __MORPHOS__
+DEFMMETHOD(List_Construct)
+{
+    struct ExecuterListEntry *nentry = (struct ExecuterListEntry *)calloc (sizeof (struct ExecuterListEntry), 1);
+
+    nentry->line = "test";
+
+    return (ULONG)nentry;
+}
+
+DEFMMETHOD(List_Destruct)
+{
+    struct ExecuterListEntry *data = (struct ExecuterListEntry *)msg->entry;
+
+    if (data == NULL) {
+        return 0;
+    }
+
+    if (data->line != NULL) {
+        //free (data->line);
+        data->line = NULL;
+    }
+
+    free (data);
+
+    return 0;
+}
+
+DEFMMETHOD(List_Display)
+{
+    struct ExecuterListEntry *e = (struct ExecuterListEntry *)msg->entry;
+
+    msg->array[0] = (char *)e->line;
+
+    return 0;
+}
+
+DEFMMETHOD(List_Compare)
+{
+#if 0
+    struct ExecuterListData *data = INST_DATA(cl, obj);
+    struct ExecuterListEntry *e1 = (struct ExecuterListEntry *)msg->entry1;
+    struct ExecuterListEntry *e2 = (struct ExecuterListEntry *)msg->entry2;
+#endif
+    LONG result = 0;
+
+#if 0
+    if (e1->info->pos > e2->info->pos) {
+        result = 1;
+    } else if (e1->info->pos < e2->info->pos) {
+        result = -1; 
+    }
+
+    result *= data->order;
+#endif
+
+    return result;
+}
+#endif
+
+
+DEFTMETHOD(ExecuterList_RemoveSelected)
+{
+    struct ExecuterListEntry *e = NULL;
+    LONG pos = MUIV_List_NextSelected_Start;
+
+    while (1) {
+        DoMethod (obj, MUIM_List_NextSelected, &pos);
+        if (pos == MUIV_List_NextSelected_End) {
+            break;
+        }
+
+        DoMethod (obj, MUIM_List_GetEntry, pos, &e);
+
+        if (e != NULL /*&& e->info != NULL*/) {
+        
+        }
+    }
+
+    DoMethod (obj, MUIM_List_Remove, MUIV_List_Remove_Active);
+    DoMethod (obj, MUIM_List_Remove, MUIV_List_Remove_Selected);
+
+    return 0;
+}
+
+DEFTMETHOD(ExecuterList_EditSelected)
+{
+    struct ExecuterListEntry *e = NULL;
+    LONG pos = MUIV_List_NextSelected_Start;
+
+    while (1) {
+        DoMethod (obj, MUIM_List_NextSelected, &pos);
+        if (pos == MUIV_List_NextSelected_End) {
+            break;
+        }
+
+        DoMethod (obj, MUIM_List_GetEntry, pos, &e);
+
+        if (e != NULL /*&& e->info != NULL*/) {
+        
+        }
+    }
+
+    return 0;
+}
+
+
+DEFTMETHOD(ExecuterList_Clear)
+{
+    DoMethod (obj, MUIM_List_Clear);
+
+    return 0;
+}
+
+DEFTMETHOD(ExecuterList_Add)
+{
+    DoMethod (obj, MUIM_List_Clear);
+
+    return 0;
+}
+
+
+BEGINMTABLE2(executerlistclass)
+DECNEW(ExecuterList)
+DECDISP(ExecuterList)
+DECGET(ExecuterList)
+DECSET(ExecuterList)
+#ifdef __MORPHOS__
+DECMMETHOD(List_Construct)
+DECMMETHOD(List_Destruct)
+DECMMETHOD(List_Display)
+DECMMETHOD(List_Compare)
+#endif
+DECTMETHOD(ExecuterList_RemoveSelected)
+DECTMETHOD(ExecuterList_EditSelected)
+DECTMETHOD(ExecuterList_Add)
+DECTMETHOD(ExecuterList_Clear)
+ENDMTABLE
+
+DECSUBCLASS_NC(MUIC_List, executerlistclass, ExecuterListData)

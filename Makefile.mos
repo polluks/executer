@@ -1,0 +1,36 @@
+CC=ppc-morphos-gcc
+RM=rm -f
+
+CFLAGS=-I. -Isrc -Iinclude -O2 -Wall -Werror
+LDFLAGS=-noixemul
+
+TARGET=Executer
+
+SRCS= src/executer.c \
+	src/libraries.c \
+	src/arexx.c \
+	src/notify.c \
+	src/spawn.c \
+	src/prefs.c \
+	src/utility.c
+
+CFLAGS+=-DENABLE_MUI
+SRCS+=src/mui/window.c \
+	src/mui/classes.c \
+	src/mui/objects.c \
+	src/mui/application-class.c \
+	src/mui/main-window-class.c \
+	src/mui/list-class.c
+
+OBJS=$(SRCS:.c=.o)
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(LDFLAGS) $(OBJS) -o $@
+
+$(OBJS): %.o: %.c
+	$(CC) -c $(CFLAGS) $< -o $@
+
+clean:
+	$(RM) $(OBJS) $(TARGET)

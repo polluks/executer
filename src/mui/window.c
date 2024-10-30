@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <intuition/intuition.h>
 #include <proto/intuition.h>
+#include <clib/exec_protos.h>
 
 #include "window.h"
 
@@ -97,3 +98,7 @@ static struct Window *_open_window (void)
     return w;
 }
 
+int window_setup_list (struct List *nitems)
+{
+    return 0;
+}
