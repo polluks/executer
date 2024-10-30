@@ -12,7 +12,7 @@ BOOL utility_exists (const char *path)
     STRPTR buf;
 #endif
     BOOL ret = FALSE;
-    BPTR l = Lock ((UBYTE *)path, ACCESS_READ);
+    BPTR l = Lock ((CONST_STRPTR)path, ACCESS_READ);
     if (l != 0) {
         ret = TRUE;
     }

@@ -130,8 +130,8 @@ int notify_add (const char *path, const char *command, int reason, notify_cb_t c
     item->exists = utility_exists (path);
     item->reason = reason;
     item->cb = cb;
-    CopyMem (path, item->path, strlen (path) + 1);
-    CopyMem (command, item->command, strlen (command) + 1);
+    CopyMem ((char *)path, item->path, strlen (path) + 1);
+    CopyMem ((char *)command, item->command, strlen (command) + 1);
 
     item->node.ln_Name = (char *)item->path;
 

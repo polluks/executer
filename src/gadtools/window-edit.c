@@ -21,7 +21,7 @@
 #define WINDOW_HEIGHT 116
 
 /* common */
-#define BUTTON_HEIGHT 16
+#define BUTTON_HEIGHT 14
 /* file selectors */
 #define REQUESTER_BUTTON_WIDTH 52
 /* Ok Cancel */
@@ -79,11 +79,6 @@ int window_edit_init (struct TextAttr *textattr, void *visualinfo, UWORD topbord
     _textattr = textattr;
     _visualinfo = visualinfo;
     _topborder = topborder;
-    if (_create_gadgets () != 0) {
-        fprintf (stderr, "Could not create edit gadgets\n");
-        window_edit_free ();
-        return 1;
-    }
 
     _path_str = (STRPTR)AllocMem (TMP_SIZE, MEMF_ANY|MEMF_CLEAR);
     if (_path_str == NULL) {
@@ -121,6 +116,11 @@ int window_edit_visibility (BOOL visible)
 
     _visible = visible;
     if (_visible) {
+        if (_create_gadgets () != 0) {
+            fprintf (stderr, "Could not create edit gadgets\n");
+            window_edit_free ();
+            return 1;
+        }
         _window = _open_window ();
         if (_window == NULL) {
             _signal = 0;
@@ -131,6 +131,8 @@ int window_edit_visibility (BOOL visible)
             CloseWindow (_window);
             _window = NULL;
         }
+        FreeGadgets (_glist);
+        _glist = NULL;
         _signal = 0;
     }
     return 0;
@@ -381,6 +383,7 @@ static int _create_gadgets (void)
     ng.ng_TopEdge    = top3;
     ng.ng_LeftEdge  += ng.ng_Width + 4;
     ng.ng_Width      = 64;
+    ng.ng_Height     = BUTTON_HEIGHT;
     ng.ng_GadgetText = (UBYTE *)"Create";
     ng.ng_GadgetID   = GAD_ID_ACTION_CREATE_TEXT;
     gad = CreateGadget (TEXT_KIND, gad, &ng,
@@ -393,6 +396,7 @@ static int _create_gadgets (void)
     ng.ng_LeftEdge   += ng.ng_Width + 8;
     ng.ng_GadgetText = NULL;
     ng.ng_Width      = 26;
+    ng.ng_Height     = 11;
     ng.ng_GadgetID   = GAD_ID_ACTION_DELETE_CHECK;
     gad = CreateGadget (CHECKBOX_KIND, gad, &ng,
                     TAG_END);
@@ -402,6 +406,7 @@ static int _create_gadgets (void)
     ng.ng_TopEdge     = top3;
     ng.ng_LeftEdge   += ng.ng_Width + 4;
     ng.ng_Width      = 64;
+    ng.ng_Height     = BUTTON_HEIGHT;
     ng.ng_GadgetText = (UBYTE *)"Delete";
     ng.ng_GadgetID   = GAD_ID_ACTION_DELETE_TEXT;
     gad = CreateGadget (TEXT_KIND, gad, &ng,
@@ -414,6 +419,7 @@ static int _create_gadgets (void)
     ng.ng_LeftEdge   += ng.ng_Width + 8;
     ng.ng_GadgetText = NULL;
     ng.ng_Width      = 26;
+    ng.ng_Height     = 11;
     ng.ng_GadgetID   = GAD_ID_ACTION_MODIFY_CHECK;
     gad = CreateGadget (CHECKBOX_KIND, gad, &ng,
                     TAG_END);
@@ -423,6 +429,7 @@ static int _create_gadgets (void)
     ng.ng_TopEdge     = top3;
     ng.ng_LeftEdge   += ng.ng_Width + 4;
     ng.ng_Width      = 64;
+    ng.ng_Height     = BUTTON_HEIGHT;
     ng.ng_GadgetText = (UBYTE *)"Modify";
     ng.ng_GadgetID   = GAD_ID_ACTION_MODIFY_TEXT;
     gad = CreateGadget (TEXT_KIND, gad, &ng,

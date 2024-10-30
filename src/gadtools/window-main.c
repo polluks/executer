@@ -12,6 +12,7 @@
 #include <clib/graphics_protos.h>
 #include <clib/intuition_protos.h>
 #include <clib/gadtools_protos.h>
+#include <clib/dos_protos.h>
 #include <clib/alib_protos.h>
 
 #include "window-main.h"
@@ -24,7 +25,7 @@
 #define WINDOW_HEIGHT 160
 
 /* common */
-#define BUTTON_HEIGHT 16
+#define BUTTON_HEIGHT 14
 /* file selectors */
 #define FILE_BUTTON_WIDTH 48
 #define ACTION_CYCLE_WIDTH 80
@@ -86,12 +87,6 @@ int window_main_init (struct TextAttr *textattr, void *visualinfo, UWORD topbord
     }
     NewList (_list);
 
-    if (_create_gadgets () != 0) {
-        fprintf (stderr, "Could not create list gadgets\n");
-        window_main_free ();
-        return 1;
-    }
-    
     return 0;
 }
 
@@ -119,6 +114,11 @@ int window_main_visibility (BOOL visible)
 
     _visible = visible;
     if (_visible) {
+        if (_create_gadgets () != 0) {
+            fprintf (stderr, "Could not create list gadgets\n");
+            window_main_free ();
+            return 1;
+        }
         _window = _open_window ();
         if (_window == NULL) {
             _signal = 0;
@@ -129,6 +129,8 @@ int window_main_visibility (BOOL visible)
             CloseWindow (_window);
             _window = NULL;
         }
+        FreeGadgets (_glist);
+        _glist = NULL;
         _signal = 0;
     }
     return 0;
@@ -423,6 +425,7 @@ int window_main_setup_list (struct List *nlist)
     struct notify_item *nitem, *nnext;
     struct gadget_item *gitem;
     size_t pos = 0;
+    char *file_part;
 
     _clear_list ();
 
@@ -432,14 +435,28 @@ int window_main_setup_list (struct List *nlist)
             nitem = nnext;
             continue;
         }
-        pos = strlen (nitem->path);
+#if 1
+        file_part = nitem->path;
+        pos = strlen (file_part);
+#else
+        file_part = (char *)FilePart ((STRPTR)nitem->path);
+        pos = strlen (file_part);
+        if (pos == 0) {
+            file_part = nitem->path;
+            pos = strlen (file_part);
+        }
+#endif
+        if (pos == 0) {
+            nitem = nnext;
+            continue;
+        }
         gitem = AllocMem (sizeof (struct gadget_item), MEMF_ANY|MEMF_CLEAR);
         if (gitem == NULL) {
             ret = 1;
             break;
         }
         if (pos > 78) pos = 78;
-        CopyMem (nitem->path, gitem->line, pos++);
+        CopyMem (file_part, gitem->line, pos++);
         gitem->line[pos] = '\0';
         gitem->item = nitem;
         gitem->index = i++;

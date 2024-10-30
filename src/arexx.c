@@ -28,8 +28,8 @@ int arexx_init (const char *name, struct rx_command  *list)
 {
     int retval = 1;
     Forbid ();
-    if (FindPort ((UBYTE *)name) == NULL) {
-        _port = (struct MsgPort *)CreatePort ((UBYTE *)name, 0L);
+    if (FindPort ((CONST_STRPTR)name) == NULL) {
+        _port = (struct MsgPort *)CreatePort ((CONST_STRPTR)name, 0L);
     }
     Permit ();
     if (_port != NULL) {

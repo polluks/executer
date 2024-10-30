@@ -20,7 +20,7 @@ int spawn_start (const char *cmd)
         return 1;
     }
 
-    con = Open (_con, MODE_OLDFILE);
+    con = Open ((STRPTR)_con, MODE_OLDFILE);
     if (!con) {
         fprintf (stderr, "Could not open CON:\n");
         return 1;

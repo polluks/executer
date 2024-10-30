@@ -40,7 +40,7 @@ int prefs_load (void)
     }
 
     notify_clear ();
-    fh = Open ((UBYTE *)PREFS_PATH_ENV, MODE_OLDFILE);
+    fh = Open ((CONST_STRPTR)PREFS_PATH_ENV, MODE_OLDFILE);
     if (fh != 0) {
         while ((buf2 = (char *)FGets (fh, (STRPTR)buf, 1024)) != NULL) {
             len = strlen (buf2);
@@ -99,7 +99,7 @@ static int _save_to (const char *path)
         return 1;
     }
 
-    if ((fh = Open ((UBYTE *)path, MODE_NEWFILE)) == 0) {
+    if ((fh = Open ((CONST_STRPTR)path, MODE_NEWFILE)) == 0) {
         fprintf (stderr, "Prefs: could not write to save path: %s.\n", path);
         return 1;
     }
