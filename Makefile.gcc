@@ -1,38 +1,7 @@
 CC=m68k-amigaos-gcc
 RM=rm -f
 
-CFLAGS=-I. -Isrc -O2 -Wall -Werror -noixemul -mcpu=68000
+CFLAGS=-I. -Isrc -Iinclude -O2 -Wall -Werror -mcpu=68000
 LDFLAGS=-lamiga -noixemul -mcpu=68000
 
-TARGET=Executer
-
-SRCS= src/executer.c \
-	src/libraries.c \
-	src/arexx.c \
-	src/notify.c \
-	src/spawn.c \
-	src/prefs.c \
-	src/utility.c
-
-ifeq ($(ENABLE_MUI), 1)
-CFLAGS+=-DENABLE_MUI
-SRCS+=src/mui/window-mui.c
-TARGET=Executor_mui
-else
-SRCS+=src/gadtools/window.c
-SRCS+=src/gadtools/window-main.c
-SRCS+=src/gadtools/window-edit.c
-endif
-
-OBJS=$(SRCS:.c=.o)
-
-all: $(TARGET)
-
-$(TARGET): $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -o $@
-
-$(OBJS): %.o: %.c
-	$(CC) -c $(CFLAGS) $< -o $@
-
-clean:
-	$(RM) $(OBJS) $(TARGET)
+include common.mk
