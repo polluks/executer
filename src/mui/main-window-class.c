@@ -17,7 +17,7 @@
 #include "classes.h"
 #include "objects.h"
 
-//#include "m68k.h"
+#include "m68k.h"
 
 #define DEFAULT_WIDTH 320
 #define DEFAULT_HEIGHT 200
@@ -31,7 +31,9 @@ struct ExecuterMainWindowData
 /* new */
 DEFNEW(ExecuterMainWindow)
 {
-    APTR menustrip; /*, group;*/
+    APTR menustrip, button;
+
+    fprintf (stderr, "app - win 1\n");
 
     obj = DoSuperNew(cl, obj,
         MUIA_Window_Title,   "Executer",
@@ -41,16 +43,20 @@ DEFNEW(ExecuterMainWindow)
         MUIA_Window_Menustrip, menustrip = ExecuterMainMenu(),
         MUIA_UserData, MO_Executer_MainWindow,
         WindowContents, VGroup, 
-            /*Child, group = NewObject (getzmpcgroupclass(), NULL, TAG_DONE),*/
+            Child, button = SimpleButton("TST"),
+            /*Child, button = NewObject (getexecutergroupclass(), NULL, TAG_DONE),*/
             TAG_END),
         TAG_MORE, (((struct opSet *)msg)->ops_AttrList),
         TAG_DONE);
+    fprintf (stderr, "app - win %p\n", obj);
     
     if (obj != NULL) {
+    fprintf (stderr, "app - win 3\n");
         struct ExecuterMainWindowData *data = INST_DATA (cl, obj);
         data->menustrip = menustrip; 
-        set (obj, MUIA_Window_Open, TRUE);
+        //set (obj, MUIA_Window_Open, TRUE);
     }
+    fprintf (stderr, "app - win 4\n");
 
     return (ULONG)obj;
 }

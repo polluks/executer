@@ -77,11 +77,18 @@ int main (int argc, char **argv)
         (void)notify_add (PREFS_PATH_ENV, "", NOTIFY_REASON_CREATE|NOTIFY_REASON_DELETE|NOTIFY_REASON_MODIFY, _prefs_modified);
         window_setup_list (notify_list ());
 
+	fprintf (stderr, "1\n");
         _rx_signal = arexx_signal ();
         _notify_signal = notify_signal ();
-        _win_signal = window_signal ();
+//        _win_signal = window_signal ();
+	fprintf (stderr, "2 _win_Signal %du\n", _win_signal);
 	/* Open window if requested */
+#ifdef ENABLE_MUI
+        window_dispose (&_quit);
+#endif
+        _win_signal = window_signal ();
         while (_quit == FALSE) {
+             window_dispose (&_quit);
             signals = Wait (_rx_signal | _notify_signal | _win_signal | SIGBREAKF_CTRL_C);
             if (signals & _rx_signal) {
                 arexx_dispose ();
@@ -90,10 +97,12 @@ int main (int argc, char **argv)
                 notify_dispose ();
             }
             if (signals & _win_signal) {
-                fprintf (stderr, "callkng window_dispose()\n");
+                fprintf (stderr, "call window_dispose()\n");
                 window_dispose (&_quit);
+#ifndef ENABLE_MUI
                 _win_signal = window_signal ();
                 fprintf (stderr, "win signal:%lu\n", (long unsigned int)_win_signal);
+#endif
             }
             if (signals & SIGBREAKF_CTRL_C) {
                 _quit = TRUE;

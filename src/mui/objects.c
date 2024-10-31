@@ -1,12 +1,11 @@
-#include <proto/muimaster.h>
-#include <libraries/mui.h>
-#include <mui/BetterString_mcc.h>
 #ifdef __M68K__
 # include <libraries/gadtools.h> /* NM_...*/
 #else
 # include <proto/gadtools.h> /* NM_...*/
 #endif
-
+#include <proto/muimaster.h>
+#include <libraries/mui.h>
+#include <mui/BetterString_mcc.h>
 
 #include "objects.h"
 #include "classes.h"
@@ -28,7 +27,7 @@ Object *ExecuterMainMenu (void)
 
 Object *ExecuterLabel (const char *text)
 {
-    return (Object *)MUI_NewObject(MUIC_Text,
+    return (Object *)MUI_NewObject((CONST_STRPTR)MUIC_Text,
         NoFrame,
         MUIA_Text_Contents, text,
         MUIA_Text_SetMax, FALSE,

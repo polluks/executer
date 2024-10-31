@@ -16,7 +16,7 @@
 #include "common.h"
 #include "classes.h"
 
-//#include "m68k.h"
+#include "m68k.h"
 
 #define ABOUT_TEXT MUIX_C MUIX_B"Executer\n" \
 MUIX_N "©2024 Joni Valtanen\n" \
@@ -57,10 +57,6 @@ DEFNEW(ExecuterApplication)
 
         DoMethod (obj, MUIM_Notify, MUIV_Application_ReturnID_Quit, obj, 1, MM_ExecuterApplication_ReallyQuit);
         DoMethod (data->window, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, obj, 1, MM_ExecuterApplication_ReallyQuit);
-
-        // TODO: !
-        //DoMethod(obj, MUIM_Application_Load, MUIV_Application_Load_ENVARC);
-	//DoMethod(obj, MUIM_Application_Save, MUIV_Application_Save_ENV);
     }
 
     return (ULONG)obj;
@@ -83,25 +79,42 @@ DEFGET(ExecuterApplication)
 }
 
 /* set */
+static void doset(APTR obj, struct ExecuterApplicationData *data, struct TagItem *tags)
+{
+    FORTAG(tags)
+    {
+        case MA_Executer_Quit:
+            data->quit = (ULONG)tag->ti_Data;
+            break;
+    }
+    NEXTTAG
+}
+
 DEFSET(ExecuterApplication)
 {
+    struct ExecuterApplicationData *data = INST_DATA(cl, obj);
+    doset (obj, data, INITTAGS);
     return DOSUPER;
 }
 
 DEFTMETHOD(ExecuterApplication_About)
 {
     struct ExecuterApplicationData *data = INST_DATA(cl, obj);
-    MUI_Request (obj, data->window, 0, NULL, "*OK", ABOUT_TEXT);
+    MUI_Request (obj, data->window, 0, NULL, "_OK", ABOUT_TEXT);
     return 0;
 }
 
 DEFTMETHOD(ExecuterApplication_ReallyQuit)
 {
     struct ExecuterApplicationData *data = INST_DATA(cl, obj);
+#if 0
     int ret = MUI_Request (obj, data->window, 0, "Quit", "_Quit|_Cancel", QUIT_TEXT);
     if (ret == 1) {
         data->quit = 1;
     }
+#endif
+    fprintf (stderr, "Application quit -> hide\n");
+    data->quit = 1;
     return 0;
 }
 

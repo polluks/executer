@@ -11,6 +11,7 @@ SRCS= src/executer.c \
 ifeq ($(ENABLE_MUI), 1)
 CFLAGS+=-DENABLE_MUI
 SRCS+=src/mui/window.c \
+	src/mui/m68k.c \
 	src/mui/classes.c \
 	src/mui/objects.c \
 	src/mui/application-class.c \
@@ -27,7 +28,7 @@ OBJS=$(SRCS:.c=.o)
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -o $@
+	$(CC) $(LDFLAGS) $(OBJS) -o $@ $(LIBS)
 
 $(OBJS): %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@

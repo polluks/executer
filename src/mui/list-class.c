@@ -16,7 +16,7 @@
 #include "objects.h"
 #include "classes.h"
 
-//#include "m68k.h"
+#include "m68k.h"
 
 struct ExecuterListEntry
 {
@@ -28,15 +28,10 @@ struct ExecuterListData
 };
 
 #ifndef __MORPHOS__
-DEFHOOKFUNC2(APTR, List_Construct, APTR pool, struct ExecuterSongInfo *info)
+DEFHOOKFUNC2(APTR, List_Construct, APTR pool, struct ExecuterListData *data)
 {
     struct ExecuterListEntry *nentry = (struct ExecuterListEntry *)calloc (sizeof (struct ExecuterListEntry), 1);
-
-    nentry->info = info;
-    if (nentry->info == NULL) {
-        D(BUG((CONST_STRPTR)"nentry->info == NULL\n"));
-        return NULL;
-    }
+    fprintf (stderr, "app - list 1\n");
 
     nentry->line = "TST";
 
@@ -54,11 +49,6 @@ DEFHOOKFUNC(void, List_Destruct, struct ExecuterListEntry *data)
         data->line = NULL;
     }
 
-    if (data->info != NULL) {
-        executer_song_free (data->info);
-        data->info = NULL;
-    }
-
     free (data);
 }
 
@@ -74,11 +64,13 @@ DEFHOOKFUNC2(LONG, List_Compare, struct ExecuterListEntry *e1, struct ExecuterLi
     LONG result = 0;
     //struct ExecuterListData *data = e1->data;
 
+#if 0
     if (e1->info->pos < e2->info->pos) {
         result = 1;
     } else if (e1->info->pos > e2->info->pos) {
         result = -1; 
     }
+#endif
 
     //result *= data->order;
 

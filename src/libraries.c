@@ -6,6 +6,7 @@
 #include <proto/intuition.h>
 #include <proto/dos.h>
 #ifdef ENABLE_MUI
+# include <libraries/mui.h>
 # include <proto/muimaster.h>
 #endif
 
@@ -20,6 +21,11 @@ struct Library *MUIMasterBase = NULL;
 struct Library *AslBase = NULL;
 struct Library *GfxBase = NULL;
 struct Library *GadToolsBase = NULL;
+#endif
+
+#ifndef __MORPHOS__
+#undef MUIMASTER_VMIN
+#define MUIMASTER_VMIN 19
 #endif
 
 int libraries_open (void)
