@@ -16,7 +16,12 @@ SRCS+=src/mui/window.c \
 	src/mui/objects.c \
 	src/mui/application-class.c \
 	src/mui/main-window-class.c \
-	src/mui/list-class.c
+	src/mui/main-group-class.c \
+	src/mui/edit-group-class.c \
+	src/mui/list-group-class.c \
+	src/mui/list-listview-class.c \
+	src/mui/list-class.c \
+	src/mui/apply-group-class.c
 else
 SRCS+=src/gadtools/window.c
 SRCS+=src/gadtools/window-main.c

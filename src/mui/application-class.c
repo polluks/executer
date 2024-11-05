@@ -55,8 +55,8 @@ DEFNEW(ExecuterApplication)
         data->window = main_win;
         data->quit = 0;
 
-        DoMethod (obj, MUIM_Notify, MUIV_Application_ReturnID_Quit, obj, 1, MM_ExecuterApplication_ReallyQuit);
-        DoMethod (data->window, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, obj, 1, MM_ExecuterApplication_ReallyQuit);
+        DoMethod (obj, MUIM_Notify, MUIV_Application_ReturnID_Quit, obj, 1, MM_ExecuterApplication_Quit);
+        DoMethod (data->window, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, obj, 1, MM_ExecuterApplication_Quit);
     }
 
     return (ULONG)obj;
@@ -104,7 +104,7 @@ DEFTMETHOD(ExecuterApplication_About)
     return 0;
 }
 
-DEFTMETHOD(ExecuterApplication_ReallyQuit)
+DEFTMETHOD(ExecuterApplication_Quit)
 {
     struct ExecuterApplicationData *data = INST_DATA(cl, obj);
 #if 0
@@ -123,7 +123,7 @@ DECNEW(ExecuterApplication)
 DECGET(ExecuterApplication)
 DECSET(ExecuterApplication)
 DECTMETHOD(ExecuterApplication_About)
-DECTMETHOD(ExecuterApplication_ReallyQuit)
+DECTMETHOD(ExecuterApplication_Quit)
 ENDMTABLE
 
 DECSUBCLASS_NC(MUIC_Application, executerapplicationclass, ExecuterApplicationData)

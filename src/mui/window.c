@@ -8,10 +8,11 @@
 #include "window.h"
 #include "classes.h"
 #include "common.h"
+#include "../notify.h"
 
 static BOOL _visible = FALSE;
 static ULONG _signal = 0;
-static APTR _app = NULL, _window = NULL, _menuitem = NULL;
+static APTR _app = NULL, _window = NULL, _menuitem = NULL, _list = NULL;
 
 int window_init (void)
 {
@@ -25,12 +26,13 @@ int window_init (void)
 
     /* collect objects needed later */
     _window = (APTR) DoMethod (_app, MUIM_FindUData, MO_Executer_MainWindow);
+    _list = (APTR) DoMethod (_app, MUIM_FindUData, MO_Executer_List);
 
     /* menuitem notifies */
     _menuitem = (APTR) DoMethod (_app, MUIM_FindUData, ME_Executer_About);
     DoMethod (_menuitem, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime, _app, 1, MM_ExecuterApplication_About);
     _menuitem = (APTR) DoMethod (_app, MUIM_FindUData, ME_Executer_Quit);
-    DoMethod (_menuitem, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime, _app, 1, MM_ExecuterApplication_ReallyQuit);
+    DoMethod (_menuitem, MUIM_Notify, MUIA_Menuitem_Trigger, MUIV_EveryTime, _app, 1, MM_ExecuterApplication_Quit);
 
     (void)DoMethod (_app, MUIM_Application_Input, &_signal);
 
@@ -100,7 +102,28 @@ void window_dispose (BOOL *quit)
     }
 }
 
-int window_setup_list (struct List *nitems)
+int window_setup_list (struct List *nlist)
 {
+    int i = 0;
+    struct notify_item *nitem, *nnext;
+
+    DoMethod (_list, MUIM_List_Clear);
+
+    nitem = (struct notify_item *)nlist->lh_Head;
+    while ((nnext = (struct notify_item *)nitem->node.ln_Succ) != NULL) {
+        if (nitem->cb != NULL) { /* skip internals */
+            nitem = nnext;
+            continue;
+        }
+
+        {
+            struct MP_ExecuterListview_Add item;
+            item.item = nitem;
+            item.index = i++;
+            DoMethod (_list, MUIM_List_InsertSingle, &item, MUIV_List_Insert_Bottom);
+        }
+
+        nitem = nnext;
+    }
     return 0;
 }

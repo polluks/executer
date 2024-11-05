@@ -20,7 +20,9 @@
 
 struct ExecuterListEntry
 {
-    char *line;
+    struct notify_item *item;
+    int index;
+    char line[80];
 };
 
 struct ExecuterListData
@@ -28,12 +30,31 @@ struct ExecuterListData
 };
 
 #ifndef __MORPHOS__
-DEFHOOKFUNC2(APTR, List_Construct, APTR pool, struct ExecuterListData *data)
+DEFHOOKFUNC2(APTR, List_Construct, APTR pool, struct MP_ExecuterListview_Add  *data)
 {
     struct ExecuterListEntry *nentry = (struct ExecuterListEntry *)calloc (sizeof (struct ExecuterListEntry), 1);
-    fprintf (stderr, "app - list 1\n");
+    size_t pos = 0;
+    char *file_part;
 
-    nentry->line = "TST";
+    nentry->item = data->item;
+    nentry->index = data->index;
+
+#if 1
+    file_part = data->item->path;
+    pos = strlen (file_part);
+#else
+    file_part = (char *)FilePart ((STRPTR)data->item->path);
+    pos = strlen (file_part);
+    if (pos == 0) {
+        file_part = nitem->path;
+        pos = strlen (file_part);
+    }
+#endif
+    if (pos > 78) {
+        pos = 78;
+    }
+    CopyMem (file_part, nentry->line, pos++);
+    nentry->line[pos] = '\0';
 
     return (APTR)nentry;
 }
@@ -43,12 +64,6 @@ DEFHOOKFUNC(void, List_Destruct, struct ExecuterListEntry *data)
     if (data == NULL) {
         return;
     }
-
-    if (data->line != NULL) {
-        //free (data->line);
-        data->line = NULL;
-    }
-
     free (data);
 }
 
@@ -146,11 +161,6 @@ DEFMMETHOD(List_Destruct)
         return 0;
     }
 
-    if (data->line != NULL) {
-        //free (data->line);
-        data->line = NULL;
-    }
-
     free (data);
 
     return 0;
@@ -242,13 +252,12 @@ DEFTMETHOD(ExecuterList_Clear)
     return 0;
 }
 
-DEFTMETHOD(ExecuterList_Add)
+DEFTMETHOD(ExecuterList_DoubleClick)
 {
-    DoMethod (obj, MUIM_List_Clear);
 
+    // FIXME: Change to EDIT mode
     return 0;
 }
-
 
 BEGINMTABLE2(executerlistclass)
 DECNEW(ExecuterList)
@@ -261,9 +270,9 @@ DECMMETHOD(List_Destruct)
 DECMMETHOD(List_Display)
 DECMMETHOD(List_Compare)
 #endif
+DECTMETHOD(ExecuterList_DoubleClick)
 DECTMETHOD(ExecuterList_RemoveSelected)
 DECTMETHOD(ExecuterList_EditSelected)
-DECTMETHOD(ExecuterList_Add)
 DECTMETHOD(ExecuterList_Clear)
 ENDMTABLE
 
