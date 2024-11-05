@@ -57,6 +57,8 @@ enum {
     MM_ExecuterApplyGroup_Save,
     MM_ExecuterApplyGroup_Use,
     MM_ExecuterApplyGroup_Cancel,    
+    MM_ExecuterEditGroup_Ok,
+    MM_ExecuterEditGroup_Cancel,
 
     MA_Executer_ContextMenuEnabled,
     MA_Executer_Quit
