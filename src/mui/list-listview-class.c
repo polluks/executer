@@ -22,12 +22,6 @@
 
 /* FIXME: TODO: Check leaks carefully this is one of the component where this can leak a lot */
 
-struct ExecuterListviewEntry
-{
-    /*struct ExecuterListItem *item; */
-    char *line;
-};
-
 struct ExecuterListviewData
 {
     APTR LI_list;

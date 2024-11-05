@@ -21,7 +21,6 @@ DEFCLASS(executermaingroup);
 DEFCLASS(executereditgroup);
 DEFCLASS(executerlistgroup);
 DEFCLASS(executerlistview);
-DEFCLASS(executerlist);
 DEFCLASS(executerapplygroup);
 DEFCLASS(executerlist);
 

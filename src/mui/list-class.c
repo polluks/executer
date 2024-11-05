@@ -32,7 +32,7 @@ struct ExecuterListData
 #ifndef __MORPHOS__
 DEFHOOKFUNC2(APTR, List_Construct, APTR pool, struct MP_ExecuterListview_Add  *data)
 {
-    struct ExecuterListEntry *nentry = (struct ExecuterListEntry *)calloc (sizeof (struct ExecuterListEntry), 1);
+    struct ExecuterListEntry *nentry = (struct ExecuterListEntry *)AllocPooled (pool, sizeof (struct ExecuterListEntry));
     size_t pos = 0;
     char *file_part;
 
@@ -50,21 +50,21 @@ DEFHOOKFUNC2(APTR, List_Construct, APTR pool, struct MP_ExecuterListview_Add  *d
         pos = strlen (file_part);
     }
 #endif
-    if (pos > 78) {
-        pos = 78;
+    if (pos > 79) {
+        pos = 79;
     }
-    CopyMem (file_part, nentry->line, pos++);
+    CopyMem (file_part, nentry->line, pos);
     nentry->line[pos] = '\0';
 
     return (APTR)nentry;
 }
 
-DEFHOOKFUNC(void, List_Destruct, struct ExecuterListEntry *data)
+DEFHOOKFUNC2(void, List_Destruct, APTR pool, struct ExecuterListEntry *e)
 {
-    if (data == NULL) {
+    if (e == NULL) {
         return;
     }
-    free (data);
+    FreePooled (pool, e, sizeof (struct ExecuterListEntry));
 }
 
 DEFHOOKFUNC2(APTR, List_Display, char **array, struct ExecuterListEntry *e)
@@ -114,7 +114,7 @@ DEFNEW(ExecuterList)
         MUIA_Dropable, FALSE,
         MUIA_List_DragSortable, FALSE,
         TAG_MORE, (((struct opSet *)msg)->ops_AttrList),
-        End;
+        TAG_END);
 
 #if 0
     if (obj) {
@@ -141,6 +141,61 @@ DEFGET(ExecuterList)
 DEFSET(ExecuterList)
 {
     return DOSUPER;
+}
+
+
+DEFTMETHOD(ExecuterList_RemoveSelected)
+{
+    struct ExecuterListEntry *e = NULL;
+    LONG pos = MUIV_List_NextSelected_Start;
+
+    while (1) {
+        DoMethod (obj, MUIM_List_NextSelected, &pos);
+        if (pos == MUIV_List_NextSelected_End) {
+            break;
+        }
+
+        DoMethod (obj, MUIM_List_GetEntry, pos, &e);
+
+        if (e != NULL && e->item != NULL) {
+            fprintf (stderr, "remove - %s\n", e->item->path);
+            //notifier_remove_index (e->index);
+        }
+    }
+
+    DoMethod (obj, MUIM_List_Remove, MUIV_List_Remove_Active);
+    DoMethod (obj, MUIM_List_Remove, MUIV_List_Remove_Selected);
+
+    return 0;
+}
+
+DEFTMETHOD(ExecuterList_EditSelected)
+{
+    struct ExecuterListEntry *e = NULL;
+    LONG pos = -1;
+
+    get (obj, MUIA_List_Active, &pos);
+    if (pos != MUIV_List_Active_Off) {
+	DoMethod (obj, MUIM_List_GetEntry, pos, &e);
+        if (e != NULL && e->item != NULL) {
+            //APTR window = (APTR) DoMethod (_app(obj), MUIM_FindUData, MO_Executer_MainWindow);
+            //DoMethod (window, MM_ExecuterMainWindow_ToggleMode, e->item);
+            fprintf (stderr, "Edit - %s\n", e->item->path);
+        }
+    }
+    return 0;
+}
+
+DEFTMETHOD(ExecuterList_DoubleClick)
+{
+    DoMethod (obj, MM_ExecuterList_EditSelected);
+    return 0;
+}
+
+DEFTMETHOD(ExecuterList_Clear)
+{
+    DoMethod (obj, MUIM_List_Clear);
+    return 0;
 }
 
 #ifdef __MORPHOS__
@@ -199,81 +254,21 @@ DEFMMETHOD(List_Compare)
 #endif
 
 
-DEFTMETHOD(ExecuterList_RemoveSelected)
-{
-    struct ExecuterListEntry *e = NULL;
-    LONG pos = MUIV_List_NextSelected_Start;
-
-    while (1) {
-        DoMethod (obj, MUIM_List_NextSelected, &pos);
-        if (pos == MUIV_List_NextSelected_End) {
-            break;
-        }
-
-        DoMethod (obj, MUIM_List_GetEntry, pos, &e);
-
-        if (e != NULL /*&& e->info != NULL*/) {
-        
-        }
-    }
-
-    DoMethod (obj, MUIM_List_Remove, MUIV_List_Remove_Active);
-    DoMethod (obj, MUIM_List_Remove, MUIV_List_Remove_Selected);
-
-    return 0;
-}
-
-DEFTMETHOD(ExecuterList_EditSelected)
-{
-    struct ExecuterListEntry *e = NULL;
-    LONG pos = MUIV_List_NextSelected_Start;
-
-    while (1) {
-        DoMethod (obj, MUIM_List_NextSelected, &pos);
-        if (pos == MUIV_List_NextSelected_End) {
-            break;
-        }
-
-        DoMethod (obj, MUIM_List_GetEntry, pos, &e);
-
-        if (e != NULL /*&& e->info != NULL*/) {
-        
-        }
-    }
-
-    return 0;
-}
-
-
-DEFTMETHOD(ExecuterList_Clear)
-{
-    DoMethod (obj, MUIM_List_Clear);
-
-    return 0;
-}
-
-DEFTMETHOD(ExecuterList_DoubleClick)
-{
-
-    // FIXME: Change to EDIT mode
-    return 0;
-}
-
 BEGINMTABLE2(executerlistclass)
 DECNEW(ExecuterList)
 DECDISP(ExecuterList)
 DECGET(ExecuterList)
 DECSET(ExecuterList)
+DECTMETHOD(ExecuterList_RemoveSelected)
+DECTMETHOD(ExecuterList_EditSelected)
+DECTMETHOD(ExecuterList_DoubleClick)
+DECTMETHOD(ExecuterList_Clear)
 #ifdef __MORPHOS__
 DECMMETHOD(List_Construct)
 DECMMETHOD(List_Destruct)
 DECMMETHOD(List_Display)
 DECMMETHOD(List_Compare)
 #endif
-DECTMETHOD(ExecuterList_DoubleClick)
-DECTMETHOD(ExecuterList_RemoveSelected)
-DECTMETHOD(ExecuterList_EditSelected)
-DECTMETHOD(ExecuterList_Clear)
 ENDMTABLE
 
 DECSUBCLASS_NC(MUIC_List, executerlistclass, ExecuterListData)

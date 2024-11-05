@@ -31,8 +31,6 @@ struct ExecuterListGroupData
     APTR BT_add;
     APTR BT_edit;
     APTR BT_remove;
- 
-    struct MUI_InputHandlerNode ihnode;
 };
 
 /* new */
@@ -92,16 +90,15 @@ DEFTMETHOD(ExecuterListGroup_Add)
 
 DEFTMETHOD(ExecuterListGroup_Edit)
 {
-//    struct ExecuterListGroupData *data = INST_DATA (cl, obj);
-    APTR window = (APTR) DoMethod (_app(obj), MUIM_FindUData, MO_Executer_MainWindow);
-    struct notify_item *item = NULL;
-    DoMethod (window, MM_ExecuterMainWindow_ToggleMode, item);
+    struct ExecuterListGroupData *data = INST_DATA (cl, obj);
+    DoMethod (data->LI_list, MM_ExecuterList_EditSelected);
     return 0;
 }
 
 DEFTMETHOD(ExecuterListGroup_Remove)
 {
-//    struct ExecuterListGroupData *data = INST_DATA (cl, obj);
+    struct ExecuterListGroupData *data = INST_DATA (cl, obj);
+    DoMethod (data->LI_list, MM_ExecuterList_RemoveSelected);
     return 0;
 }
         

@@ -44,12 +44,13 @@ int window_init (void)
 
 void window_free (void)
 {
-    fprintf (stderr, "Window free\n");
-    _signal = 0;
     if (window_visibility (FALSE) != 0) {
         return;
     }
+
+    DoMethod (_list, MUIM_List_Clear);
     MUI_DisposeObject (_app);
+    _signal = 0;
     classes_cleanup();
 }
 

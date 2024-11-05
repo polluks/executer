@@ -38,8 +38,6 @@ struct ExecuterEditGroupData
     APTR CH_remove;
     APTR BT_ok;
     APTR BT_cancel;
- 
-    struct MUI_InputHandlerNode ihnode;
 };
 
 /* new */
@@ -61,6 +59,8 @@ DEFNEW(ExecuterEditGroup)
     obj = DoSuperNew(cl, obj,
         MUIA_UserData, MO_Executer_Edit_Group,
         MUIA_Group_Horiz, FALSE,
+        MUIA_Group_SameHeight, TRUE,
+        MUIA_Group_SameSize, FALSE,
         InnerSpacing(0,0),
         Child, VGroup,
           Child, HGroup,
@@ -85,6 +85,7 @@ DEFNEW(ExecuterEditGroup)
             End,
           End,
         Child, HGroup,
+          MUIA_Group_SameSize, TRUE,
           Child, BT_ok = ExecuterButton ("OK", 'o'),
           Child, BT_cancel = ExecuterButton ("Cancel", 'c'),
           End,

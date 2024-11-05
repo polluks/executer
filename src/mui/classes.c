@@ -22,7 +22,6 @@ static const struct classdesc cd[] = {
     CLASSENT(executereditgroup),
     CLASSENT(executerlistgroup),
     CLASSENT(executerlistview),
-    CLASSENT(executerlist),
     CLASSENT(executerapplygroup),
     CLASSENT(executerlist),
     { 0, 0, 0 }

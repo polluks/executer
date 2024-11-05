@@ -28,8 +28,6 @@ struct ExecuterMainGroupData
 {
     APTR GR_list;
     APTR GR_apply;
- 
-    struct MUI_InputHandlerNode ihnode;
 };
 
 /* new */
@@ -48,7 +46,7 @@ DEFNEW(ExecuterMainGroup)
 
     if (obj) {
         struct ExecuterMainGroupData *data = INST_DATA (cl, obj);
-        //data->GR_list = GR_list;
+        data->GR_list = GR_list;
         data->GR_apply = GR_apply;
     }
 
