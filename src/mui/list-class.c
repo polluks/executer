@@ -17,6 +17,7 @@
 #include "classes.h"
 
 #include "m68k.h"
+#include "../notify.h"
 
 struct ExecuterListEntry
 {
@@ -79,15 +80,11 @@ DEFHOOKFUNC2(LONG, List_Compare, struct ExecuterListEntry *e1, struct ExecuterLi
     LONG result = 0;
     //struct ExecuterListData *data = e1->data;
 
-#if 0
-    if (e1->info->pos < e2->info->pos) {
+    if (e1->index < e2->index) {
         result = 1;
-    } else if (e1->info->pos > e2->info->pos) {
+    } else if (e1->index > e2->index) {
         result = -1; 
     }
-#endif
-
-    //result *= data->order;
 
     return result;
 }
@@ -159,7 +156,9 @@ DEFTMETHOD(ExecuterList_RemoveSelected)
 
         if (e != NULL && e->item != NULL) {
             fprintf (stderr, "remove - %s\n", e->item->path);
-            //notifier_remove_index (e->index);
+            if (!notify_remove_index_from_list (e->index) != 0) {
+               fprintf (stderr, "Could not remove notify item.\n");
+            }
         }
     }
 
@@ -171,16 +170,22 @@ DEFTMETHOD(ExecuterList_RemoveSelected)
 
 DEFTMETHOD(ExecuterList_EditSelected)
 {
+    ULONG tmp = 0;
     struct ExecuterListEntry *e = NULL;
-    LONG pos = -1;
+    LONG pos = MUIV_List_Active_Off;
+    APTR window;
+    APTR edit;
 
     get (obj, MUIA_List_Active, &pos);
     if (pos != MUIV_List_Active_Off) {
-	DoMethod (obj, MUIM_List_GetEntry, pos, &e);
+	DoMethod (obj, MUIM_List_GetEntry, pos, &tmp);
+        e = (struct ExecuterListEntry *)tmp;
         if (e != NULL && e->item != NULL) {
-            //APTR window = (APTR) DoMethod (_app(obj), MUIM_FindUData, MO_Executer_MainWindow);
-            //DoMethod (window, MM_ExecuterMainWindow_ToggleMode, e->item);
-            fprintf (stderr, "Edit - %s\n", e->item->path);
+            fprintf (stderr, "Edit %p - %s\n", e->item, e->item->path);
+            edit = (APTR) DoMethod (_app(obj), MUIM_FindUData, MO_Executer_Edit_Group);
+            set (edit, MA_Executer_EditItem, (ULONG)e->item);
+            window = (APTR) DoMethod (_app(obj), MUIM_FindUData, MO_Executer_MainWindow);
+            DoMethod (window, MM_ExecuterMainWindow_ToggleMode);
         }
     }
     return 0;
@@ -197,6 +202,38 @@ DEFTMETHOD(ExecuterList_Clear)
     DoMethod (obj, MUIM_List_Clear);
     return 0;
 }
+
+DEFTMETHOD(ExecuterList_Update)
+{
+    int i = 0;
+    struct notify_item *nitem, *nnext;
+    struct List *nlist = notify_list();
+
+    DoMethod (obj, MUIM_List_Clear);
+
+    if (nlist == NULL) return 0;
+
+    nitem = (struct notify_item *)nlist->lh_Head;
+    while ((nnext = (struct notify_item *)nitem->node.ln_Succ) != NULL) {
+        if (nitem->cb != NULL) { /* skip internals */
+            nitem = nnext;
+            continue;
+        }
+
+        {
+            struct MP_ExecuterListview_Add item;
+            item.item = nitem;
+            item.index = i++;
+            DoMethod (obj, MUIM_List_InsertSingle, &item, MUIV_List_Insert_Bottom);
+        }
+
+        nitem = nnext;
+    }
+
+
+    return 0;
+}
+
 
 #ifdef __MORPHOS__
 DEFMMETHOD(List_Construct)
@@ -263,6 +300,7 @@ DECTMETHOD(ExecuterList_RemoveSelected)
 DECTMETHOD(ExecuterList_EditSelected)
 DECTMETHOD(ExecuterList_DoubleClick)
 DECTMETHOD(ExecuterList_Clear)
+DECTMETHOD(ExecuterList_Update)
 #ifdef __MORPHOS__
 DECMMETHOD(List_Construct)
 DECMMETHOD(List_Destruct)

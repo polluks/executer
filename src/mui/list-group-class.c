@@ -83,14 +83,17 @@ DEFNEW(ExecuterListGroup)
 DEFTMETHOD(ExecuterListGroup_Add)
 {
 //    struct ExecuterListGroupData *data = INST_DATA (cl, obj);
+    APTR edit = (APTR) DoMethod (_app(obj), MUIM_FindUData, MO_Executer_Edit_Group);
     APTR window = (APTR) DoMethod (_app(obj), MUIM_FindUData, MO_Executer_MainWindow);
-    DoMethod (window, MM_ExecuterMainWindow_ToggleMode, NULL);
+    set (edit, MA_Executer_EditItem, 0);
+    DoMethod (window, MM_ExecuterMainWindow_ToggleMode);
     return 0;
 }
 
 DEFTMETHOD(ExecuterListGroup_Edit)
 {
     struct ExecuterListGroupData *data = INST_DATA (cl, obj);
+    /* move to list-class. FIXME: get current and do magic here */
     DoMethod (data->LI_list, MM_ExecuterList_EditSelected);
     return 0;
 }
@@ -98,6 +101,7 @@ DEFTMETHOD(ExecuterListGroup_Edit)
 DEFTMETHOD(ExecuterListGroup_Remove)
 {
     struct ExecuterListGroupData *data = INST_DATA (cl, obj);
+    /* move to list-class. FIXME: get selected and remove here */
     DoMethod (data->LI_list, MM_ExecuterList_RemoveSelected);
     return 0;
 }

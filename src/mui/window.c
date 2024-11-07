@@ -44,14 +44,16 @@ int window_init (void)
 
 void window_free (void)
 {
+    _signal = 0;
     if (window_visibility (FALSE) != 0) {
         return;
     }
 
-    DoMethod (_list, MUIM_List_Clear);
+    for (int i = 0; i < 25; i++) fprintf (stderr, "window_free 0\n");
     MUI_DisposeObject (_app);
-    _signal = 0;
+    for (int i = 0; i < 25; i++) fprintf (stderr, "window_free 1\n");
     classes_cleanup();
+    for (int i = 0; i < 25; i++) fprintf (stderr, "window_free 2\n");
 }
 
 ULONG window_signal (void)
@@ -105,26 +107,10 @@ void window_dispose (BOOL *quit)
 
 int window_setup_list (struct List *nlist)
 {
-    int i = 0;
-    struct notify_item *nitem, *nnext;
+    (void)nlist;
+    if (_signal == 0) return 0;
 
-    DoMethod (_list, MUIM_List_Clear);
+    DoMethod (_list, MM_ExecuterList_Update);
 
-    nitem = (struct notify_item *)nlist->lh_Head;
-    while ((nnext = (struct notify_item *)nitem->node.ln_Succ) != NULL) {
-        if (nitem->cb != NULL) { /* skip internals */
-            nitem = nnext;
-            continue;
-        }
-
-        {
-            struct MP_ExecuterListview_Add item;
-            item.item = nitem;
-            item.index = i++;
-            DoMethod (_list, MUIM_List_InsertSingle, &item, MUIV_List_Insert_Bottom);
-        }
-
-        nitem = nnext;
-    }
     return 0;
 }

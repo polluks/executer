@@ -21,8 +21,8 @@ DEFCLASS(executermaingroup);
 DEFCLASS(executereditgroup);
 DEFCLASS(executerlistgroup);
 DEFCLASS(executerlistview);
-DEFCLASS(executerapplygroup);
 DEFCLASS(executerlist);
+DEFCLASS(executerapplygroup);
 
 /* All methods, attributes and findable objects */
 enum {
@@ -52,6 +52,7 @@ enum {
     MM_ExecuterList_RemoveSelected,
     MM_ExecuterList_EditSelected,
     MM_ExecuterList_Clear,
+    MM_ExecuterList_Update,
     MM_ExecuterList_DoubleClick,
     MM_ExecuterApplyGroup_Save,
     MM_ExecuterApplyGroup_Use,
@@ -59,6 +60,7 @@ enum {
     MM_ExecuterEditGroup_Ok,
     MM_ExecuterEditGroup_Cancel,
 
+    MA_Executer_EditItem,
     MA_Executer_ContextMenuEnabled,
     MA_Executer_Quit
 };

@@ -22,8 +22,8 @@ static const struct classdesc cd[] = {
     CLASSENT(executereditgroup),
     CLASSENT(executerlistgroup),
     CLASSENT(executerlistview),
-    CLASSENT(executerapplygroup),
     CLASSENT(executerlist),
+    CLASSENT(executerapplygroup),
     { 0, 0, 0 }
 };
 
