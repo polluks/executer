@@ -49,11 +49,8 @@ void window_free (void)
         return;
     }
 
-    for (int i = 0; i < 25; i++) fprintf (stderr, "window_free 0\n");
     MUI_DisposeObject (_app);
-    for (int i = 0; i < 25; i++) fprintf (stderr, "window_free 1\n");
     classes_cleanup();
-    for (int i = 0; i < 25; i++) fprintf (stderr, "window_free 2\n");
 }
 
 ULONG window_signal (void)

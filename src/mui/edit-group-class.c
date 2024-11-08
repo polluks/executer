@@ -214,7 +214,7 @@ DEFTMETHOD(ExecuterEditGroup_Ok)
         /* edit */
         data->item->reason = reason;
         CopyMem(path, data->item->path, strlen(path) + 1);
-        CopyMem(command, data->item->command, strlen(path) + 1);
+        CopyMem(command, data->item->command, strlen(command) + 1);
     } else {
        /* new */
         notify_add (path, command, reason, NULL);
