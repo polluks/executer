@@ -36,8 +36,8 @@ int window_init (void)
 
     (void)DoMethod (_app, MUIM_Application_Input, &_signal);
 
-    /* open window */
-    window_visibility (TRUE);
+    /* open window - for debugging only */
+    //window_visibility (TRUE);
 
     return 0;
 }
@@ -73,6 +73,7 @@ int window_visibility (BOOL visible)
     }
 
     _visible = visible;
+    D(BUG("** visible %s\n", (visible==TRUE)?"TRUE":"FALSE"));
     set (_window, MUIA_Window_Open, visible);
 
     return 0;

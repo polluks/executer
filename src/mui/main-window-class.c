@@ -58,7 +58,7 @@ DEFNEW(ExecuterMainWindow)
         data->menustrip = menustrip; 
         data->GR_main = GR_main; 
         data->mode = WINDOW_MODE_LIST; 
-        //set (obj, MUIA_Window_Open, TRUE);
+        //set (obj, MUIA_Window_Open, FALSE);
     }
 
     return (ULONG)obj;
