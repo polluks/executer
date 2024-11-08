@@ -30,7 +30,6 @@ struct ExecuterMainWindowData
 {
     APTR menustrip;
     APTR GR_main;
-    APTR GR_edit;
     window_mode mode;
 };
 
@@ -40,7 +39,6 @@ DEFNEW(ExecuterMainWindow)
 {
     APTR menustrip;
     APTR GR_main;
-    APTR GR_edit;
 
     obj = DoSuperNew(cl, obj,
         MUIA_Window_Title,   "Executer",
@@ -50,19 +48,15 @@ DEFNEW(ExecuterMainWindow)
         MUIA_Window_Menustrip, menustrip = ExecuterMainMenu(),
         MUIA_UserData, MO_Executer_MainWindow,
         WindowContents, VGroup, 
-            /*Child, button = SimpleButton("TST"),*/
             Child, GR_main = NewObject (getexecutermaingroupclass(), NULL, TAG_DONE),
-            Child, GR_edit = NewObject (getexecutereditgroupclass(), NULL, TAG_DONE),
             TAG_END),
         TAG_MORE, (((struct opSet *)msg)->ops_AttrList),
         TAG_DONE);
     
     if (obj != NULL) {
         struct ExecuterMainWindowData *data = INST_DATA (cl, obj);
-        set (GR_edit, MUIA_ShowMe, FALSE);
         data->menustrip = menustrip; 
         data->GR_main = GR_main; 
-        data->GR_edit = GR_edit;
         data->mode = WINDOW_MODE_LIST; 
         //set (obj, MUIA_Window_Open, TRUE);
     }
@@ -73,13 +67,14 @@ DEFNEW(ExecuterMainWindow)
 DEFTMETHOD(ExecuterMainWindow_ToggleMode)
 {
     struct ExecuterMainWindowData *data = INST_DATA (cl, obj);
+    APTR edit = (APTR) DoMethod (_app(obj), MUIM_FindUData, MO_Executer_EditWindow);
     if (data->mode == WINDOW_MODE_LIST) {
-        set (data->GR_main, MUIA_ShowMe, FALSE);
-        set (data->GR_edit, MUIA_ShowMe, TRUE);
+        set (edit, MUIA_Window_Open, TRUE);
         data->mode = WINDOW_MODE_EDIT;
+        set (obj, MUIA_Window_Sleep, TRUE);
     } else {
-        set (data->GR_edit, MUIA_ShowMe, FALSE);
-        set (data->GR_main, MUIA_ShowMe, TRUE);
+        set (obj, MUIA_Window_Sleep, FALSE);
+        set (edit, MUIA_Window_Open, FALSE);
         data->mode = WINDOW_MODE_LIST;
     }
     return 0;

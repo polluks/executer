@@ -18,6 +18,7 @@ struct classdesc {
 static const struct classdesc cd[] = {
     CLASSENT(executerapplication),
     CLASSENT(executermainwindow),
+    CLASSENT(executereditwindow),
     CLASSENT(executermaingroup),
     CLASSENT(executereditgroup),
     CLASSENT(executerlistgroup),

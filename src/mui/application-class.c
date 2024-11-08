@@ -30,7 +30,8 @@ MUIX_N "©2024 Joni Valtanen\n" \
 
 struct ExecuterApplicationData
 {
-    APTR window;
+    APTR main_window;
+    APTR edit_window;
     ULONG quit;
 };
 
@@ -39,6 +40,7 @@ struct ExecuterApplicationData
 DEFNEW(ExecuterApplication)
 {
     APTR main_win;
+    APTR edit_win;
 
     obj = DoSuperNew(cl, obj,
         MUIA_Application_Title,       "Executer",
@@ -48,16 +50,18 @@ DEFNEW(ExecuterApplication)
         MUIA_Application_Base,        "EXER",
         MUIA_Application_Description, "Run commands when file is modified, removed or created",
         MUIA_Application_Window,       main_win = NewObject (getexecutermainwindowclass(), NULL, TAG_DONE),
+        MUIA_Application_Window,       edit_win = NewObject (getexecutereditwindowclass(), NULL, TAG_DONE),
         TAG_MORE, (((struct opSet *)msg)->ops_AttrList),
         TAG_DONE);
 
     if (obj != NULL) {
         struct ExecuterApplicationData *data = INST_DATA (cl, obj);
-        data->window = main_win;
+        data->main_window = main_win;
+        data->edit_window = edit_win;
         data->quit = 0;
 
         DoMethod (obj, MUIM_Notify, MUIV_Application_ReturnID_Quit, obj, 1, MM_ExecuterApplication_Quit);
-        DoMethod (data->window, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, obj, 1, MM_ExecuterApplication_Quit);
+        DoMethod (data->main_window, MUIM_Notify, MUIA_Window_CloseRequest, TRUE, obj, 1, MM_ExecuterApplication_Quit);
     }
 
     return (ULONG)obj;
@@ -101,7 +105,7 @@ DEFSET(ExecuterApplication)
 DEFTMETHOD(ExecuterApplication_About)
 {
     struct ExecuterApplicationData *data = INST_DATA(cl, obj);
-    MUI_Request (obj, data->window, 0, NULL, "_OK", ABOUT_TEXT);
+    MUI_Request (obj, data->main_window, 0, NULL, "_OK", ABOUT_TEXT);
     return 0;
 }
 

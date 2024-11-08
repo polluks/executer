@@ -17,6 +17,7 @@ void classes_cleanup(void);
 
 DEFCLASS(executerapplication);
 DEFCLASS(executermainwindow);
+DEFCLASS(executereditwindow);
 DEFCLASS(executermaingroup);
 DEFCLASS(executereditgroup);
 DEFCLASS(executerlistgroup);
@@ -32,6 +33,7 @@ enum {
 
     MO_Executer_MainWindow,
     MO_Executer_Main_Group,
+    MO_Executer_EditWindow,
     MO_Executer_Edit_Group,
     MO_Executer_List_Group,
     MO_Executer_List_Listview,
