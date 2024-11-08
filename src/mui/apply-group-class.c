@@ -23,6 +23,7 @@
 #include "classes.h"
 
 #include "m68k.h"
+#include "../prefs.h"
 
 struct ExecuterApplyGroupData
 {
@@ -70,6 +71,13 @@ DEFNEW(ExecuterApplyGroup)
 DEFTMETHOD(ExecuterApplyGroup_Save)
 {
 //    struct ExecuterApplyGroupData *data = INST_DATA (cl, obj);
+    if (prefs_save_env () != 0) {
+        fprintf (stderr, "Could not save prefs to ENV:");
+    }
+    if (prefs_save_envarc () != 0) {
+        fprintf (stderr, "Could not save prefs to ENVARC:");
+    }
+
     DoMethod (_app(obj), MM_ExecuterApplication_Quit);
     return 0;
 }
@@ -77,6 +85,9 @@ DEFTMETHOD(ExecuterApplyGroup_Save)
 DEFTMETHOD(ExecuterApplyGroup_Use)
 {
 //    struct ExecuterApplyGroupData *data = INST_DATA (cl, obj);
+    if (prefs_save_env () != 0) {
+        fprintf (stderr, "Could not save prefs to ENV:");
+    }
     DoMethod (_app(obj), MM_ExecuterApplication_Quit);
     return 0;
 }

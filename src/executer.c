@@ -109,13 +109,9 @@ int main (int argc, char **argv)
             }
         }
 
-    for (int i = 0; i < 25; i++) fprintf (stderr, "window_free\n");
         window_free ();
-    for (int i = 0; i < 25; i++) fprintf (stderr, "notify_free\n");
         notify_free ();
-    for (int i = 0; i < 25; i++) fprintf (stderr, "arexx_free\n");
         arexx_free ();
-    for (int i = 0; i < 25; i++) fprintf (stderr, "libraries_close\n");
 	libraries_close ();
 
 	return 0;
