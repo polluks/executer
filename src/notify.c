@@ -12,6 +12,7 @@
 #include "notify.h"
 #include "utility.h"
 #include "spawn.h"
+#include "debug.h"
 
 #define MAX_NOTIFIES 100
 ULONG _signal;
@@ -19,7 +20,9 @@ ULONG _signal;
 static struct MsgPort *_port = NULL;
 static struct List *_list = NULL;
 
+#ifdef DEBUG
 static const char *_reason_to_string (int reason); 
+#endif
 
 int notify_init (void)
 {
@@ -79,24 +82,25 @@ void notify_dispose (void)
             /* FIXME: handle command here. */
 
             exists = utility_exists (item->path);
-            fprintf (stderr, "\n\nExists: %s. Item exists: %s\n", exists?"TRUE":"FALSE", item->exists?"TRUE":"FALSE");
+            D(BUG("\n\nExists: %s. Item exists: %s\n", exists?"TRUE":"FALSE", item->exists?"TRUE":"FALSE"));
             if (exists != item->exists) {
                 if (exists == TRUE) reason = NOTIFY_REASON_CREATE;
                 else reason = NOTIFY_REASON_DELETE;
             }
-            fprintf (stderr, "Triggered path: %s with reason %s. Item reasons: %s \n",
-                item->path, _reason_to_string (reason), notify_reason_bitfield_to_string (item->reason));
+            D(BUG("Triggered path: %s with reason %s. Item reasons: %s \n",
+                item->path, _reason_to_string (reason), notify_reason_bitfield_to_string (item->reason)));
             item->exists = exists;
 
             if (item->reason & reason) {
-                fprintf (stderr, "Reasons match. Try to spawn cmd: %s\n", item->command);
+                D(BUG("Reasons match. Try to spawn cmd: %s\n", item->command));
                 if (item->cb != NULL) {
                     item->cb (item->path);
                 } else {
                     (void)spawn_start (item->command);
                 }
             } else {
-                fprintf (stderr, "Reasons did not match. Trigger: %s != Item: %s \n", _reason_to_string (reason), notify_reason_bitfield_to_string (item->reason));
+                D(BUG("Reasons did not match. Trigger: %s != Item: %s \n",
+                    _reason_to_string (reason), notify_reason_bitfield_to_string (item->reason)));
             }
     }
 }
@@ -148,8 +152,8 @@ int notify_add (const char *path, const char *command, int reason, notify_cb_t c
         fprintf (stderr, "Notify add: StartNotify() failed.\n");
         return 1;
     }
-    fprintf (stderr, "Item added path: %s, cmd: %s, reason: %s\n",
-                item->path, item->command, notify_reason_bitfield_to_string (item->reason));
+    D(BUG("Item added path: %s, cmd: %s, reason: %s\n",
+        item->path, item->command, notify_reason_bitfield_to_string (item->reason)));
 
     return 0;
 }
@@ -192,12 +196,14 @@ struct List *notify_list (void)
     return _list;
 }
 
+#ifdef DEBUG
 static const char *_reason_to_string (int reason)
 {
     if (reason == NOTIFY_REASON_CREATE) return "C";
     else if (reason == NOTIFY_REASON_DELETE) return "D";
     return "M";
 }
+#endif
 
 static char _rbfstr[7];
 const char *notify_reason_bitfield_to_string (int reason)

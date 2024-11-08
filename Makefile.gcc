@@ -1,7 +1,7 @@
 CC=m68k-amigaos-gcc
 RM=rm -f
 
-CFLAGS=-I. -Isrc -Iinclude -O2 -Wall -Wno-pointer-sign -Wno-incompatible-pointer-types -Werror -mcpu=68030
+CFLAGS=-I. -Isrc -Iinclude -O2 -Wall -Wno-pointer-sign -Wno-incompatible-pointer-types -Werror -mcpu=68030 -DDEBUG
 LDFLAGS=-noixemul -mcpu=68030
 LIBS=-lamiga
 ifeq ($(ENABLE_MUI), 1)

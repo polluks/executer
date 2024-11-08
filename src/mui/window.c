@@ -8,7 +8,7 @@
 #include "window.h"
 #include "classes.h"
 #include "common.h"
-#include "../notify.h"
+#include "../debug.h"
 
 static BOOL _visible = FALSE;
 static ULONG _signal = 0;
@@ -92,7 +92,7 @@ void window_dispose (BOOL *quit)
     
     get (_app, MA_Executer_Quit, &winquit);
     if (winquit != 0) {
-        fprintf (stderr, "Window quit -> hide\n");
+        D(BUG("Window quit -> hide\n"));
         v = FALSE;
     }
 

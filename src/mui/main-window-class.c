@@ -42,8 +42,6 @@ DEFNEW(ExecuterMainWindow)
     APTR GR_main;
     APTR GR_edit;
 
-    fprintf (stderr, "app - win 1\n");
-
     obj = DoSuperNew(cl, obj,
         MUIA_Window_Title,   "Executer",
         MUIA_Window_ID,      MAKE_ID ('E', 'X', 'E', 'R'),
@@ -58,10 +56,8 @@ DEFNEW(ExecuterMainWindow)
             TAG_END),
         TAG_MORE, (((struct opSet *)msg)->ops_AttrList),
         TAG_DONE);
-    fprintf (stderr, "app - win %p\n", obj);
     
     if (obj != NULL) {
-    fprintf (stderr, "app - win 3\n");
         struct ExecuterMainWindowData *data = INST_DATA (cl, obj);
         set (GR_edit, MUIA_ShowMe, FALSE);
         data->menustrip = menustrip; 
@@ -70,7 +66,6 @@ DEFNEW(ExecuterMainWindow)
         data->mode = WINDOW_MODE_LIST; 
         //set (obj, MUIA_Window_Open, TRUE);
     }
-    fprintf (stderr, "app - win 4\n");
 
     return (ULONG)obj;
 }

@@ -23,6 +23,7 @@
 #include "classes.h"
 
 #include "m68k.h"
+#include "../debug.h"
 
 struct ExecuterEditGroupData
 {
@@ -158,7 +159,7 @@ static void doset(APTR obj, struct ExecuterEditGroupData *data, struct TagItem *
     {
         case MA_Executer_EditItem: {
             data->item = (struct nofity_item *)tag->ti_Data;
-            fprintf (stderr, "Trying to set0: item: %p path: '%s', command: '%s'\n", data->item, data->item->path, data->item->command);
+            D(BUG("Trying to set0: item: %p path: '%s', command: '%s'\n", data->item, data->item->path, data->item->command));
             if  (data->item != NULL) {
                 BOOL create = ((data->item->reason & NOTIFY_REASON_CREATE) != 0)?TRUE:FALSE;
                 BOOL delete = ((data->item->reason & NOTIFY_REASON_DELETE) != 0)?TRUE:FALSE;
@@ -168,7 +169,7 @@ static void doset(APTR obj, struct ExecuterEditGroupData *data, struct TagItem *
                 set (data->CM_modify, MUIA_Selected, modify);
                 set (data->CM_delete, MUIA_Selected, delete);
 
-                fprintf (stderr, "Trying to set: path: '%s', command: '%s'\n", data->item->path, data->item->command);
+                D(BUG("Trying to set: path: '%s', command: '%s'\n", data->item->path, data->item->command));
                 set (data->ST_path, MUIA_String_Contents, (ULONG)data->item->path);
                 set (data->ST_command, MUIA_String_Contents, (ULONG)data->item->command);
             } else {
@@ -254,10 +255,13 @@ DEFTMETHOD(ExecuterEditGroup_CheckValidy)
     get (data->CM_create, MUIA_Selected, &create);
     get (data->CM_delete, MUIA_Selected, &delete);
     get (data->CM_modify, MUIA_Selected, &modify);
-    fprintf (stderr, "check validity() path:'%s', command:'%s'\n", path, command);
-    fprintf (stderr, "- create:'%s - (%ul)', delete:'%s', modify:%s\n", (create!=0)?"TRUE":"FALSE", create, (delete!=0)?"TRUE":"FALSE", (modify!=0)?"TRUE":"FALSE");
+    D(BUG("check validity() path:'%s', command:'%s'\n", path, command));
+    D(BUG(" - create:'%s - (%ul)', delete:'%s', modify:%s\n",
+        (create!=0)?"TRUE":"FALSE", create, (delete!=0)?"TRUE":"FALSE", (modify!=0)?"TRUE":"FALSE"));
 
-    if (((modify != 0)|(delete != 0)|(create !=0)) && (path != NULL) && (strlen(path) > 0) && (command !=NULL) && (strlen(command) > 0)) {
+    if (((modify != 0)|(delete != 0)|(create !=0)) &&
+         (path != NULL) && (strlen(path) > 0) &&
+         (command !=NULL) && (strlen(command) > 0)) {
         valid = TRUE;
     }
 

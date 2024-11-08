@@ -13,6 +13,7 @@
 #include <clib/alib_protos.h>
 
 #include "arexx.h"
+#include "debug.h"
 
 static ULONG _signal = 0;
 static struct MsgPort *_port = NULL;
@@ -76,7 +77,7 @@ int arexx_dispose (void)
         if (msg->rm_Node.mn_Node.ln_Type == NT_REPLYMSG) { /* got reply. we sent arexx */
         } else {
             /* receive arexx command */
-            fprintf(stderr, "AREXX in: %s\n", (char *)msg->rm_Args[0]);
+            D(BUG("AREXX in: %s\n", (char *)msg->rm_Args[0]));
             args = (char *)msg->rm_Args[0];
             while (*args != '\0' && *args != ' ') args++;
             if (*args == ' ') args++;
@@ -86,7 +87,7 @@ int arexx_dispose (void)
                     len = strlen(rcmd->command);
                     if ( 0 == strncmp (rcmd->command, (const char *)msg->rm_Args[0], strlen(rcmd->command)) && 
                         (((char *)msg->rm_Args[0])[len] == ' ' || ((char *)msg->rm_Args[0])[len] == '\0')) {
-                        fprintf(stderr, "call command: %s\n", rcmd->command);
+                        D(BUG("call command: %s\n", rcmd->command));
                         rcmd->func (msg, args);
                         break;
                     }

@@ -18,6 +18,7 @@
 
 #include "m68k.h"
 #include "../notify.h"
+#include "../debug.h"
 
 struct ExecuterListEntry
 {
@@ -155,7 +156,7 @@ DEFTMETHOD(ExecuterList_RemoveSelected)
         DoMethod (obj, MUIM_List_GetEntry, pos, &e);
 
         if (e != NULL && e->item != NULL) {
-            fprintf (stderr, "remove[%d] - %s\n", e->index, e->item->path);
+            D(BUG("remove[%d] - %s\n", e->index, e->item->path));
             if (notify_remove_item_from_list (e->item) != 0) {
                fprintf (stderr, "Could not remove notify item.\n");
             }
@@ -182,7 +183,7 @@ DEFTMETHOD(ExecuterList_EditSelected)
 	DoMethod (obj, MUIM_List_GetEntry, pos, &tmp);
         e = (struct ExecuterListEntry *)tmp;
         if (e != NULL && e->item != NULL) {
-            fprintf (stderr, "Edit %p - %s\n", e->item, e->item->path);
+            D(BUG("Edit %p - %s\n", e->item, e->item->path));
             edit = (APTR) DoMethod (_app(obj), MUIM_FindUData, MO_Executer_Edit_Group);
             set (edit, MA_Executer_EditItem, (ULONG)e->item);
             window = (APTR) DoMethod (_app(obj), MUIM_FindUData, MO_Executer_MainWindow);

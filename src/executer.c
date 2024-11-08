@@ -10,6 +10,7 @@
 #include "notify.h"
 #include "prefs.h"
 #include "window.h"
+#include "debug.h"
 
 #define AREXX_PORTNAME "EXECUTER"
 
@@ -95,11 +96,11 @@ int main (int argc, char **argv)
                 notify_dispose ();
             }
             if (signals & _win_signal) {
-                //fprintf (stderr, "call window_dispose()\n");
+                //D(BUG("call window_dispose()\n"));
                 window_dispose (&_quit);
 #ifndef ENABLE_MUI
                 _win_signal = window_signal ();
-                //fprintf (stderr, "win signal:%lu\n", (long unsigned int)_win_signal);
+                //D(BUG("win signal:%lu\n", (long unsigned int)_win_signal));
 #endif
             }
             if (signals & SIGBREAKF_CTRL_C) {
@@ -117,27 +118,27 @@ int main (int argc, char **argv)
 
 static void _rx_show (struct RexxMsg *msg, const char *args)
 {
-    fprintf (stderr, "SHOW. args:%s\n", args);
+    D(BUG("SHOW. args:%s\n", args));
     if (window_visibility (TRUE) != 0) {
         fprintf (stderr, "SHOW failed.\n");
     }
     _win_signal = window_signal ();
-    fprintf (stderr, "%s: New signal %lu.\n", "SHOW", (long unsigned int)_win_signal);
+    D(BUG("%s: New signal %lu.\n", "SHOW", (long unsigned int)_win_signal));
 }
 
 static void _rx_hide (struct RexxMsg *msg, const char *args)
 {
-    fprintf (stderr, "HIDE. args:%s\n", args);
+    D(BUG("HIDE. args:%s\n", args));
     if (window_visibility (FALSE) != 0) {
         fprintf (stderr, "HIDE failed.\n");
     }
     _win_signal = window_signal ();
-    fprintf (stderr, "%s: New signal %lu.\n", "HIDE", (long unsigned int)_win_signal);
+    D(BUG("%s: New signal %lu.\n", "HIDE", (long unsigned int)_win_signal));
 }
 
 static void _rx_quit (struct RexxMsg *msg, const char *args)
 {
-    fprintf (stderr, "QUIT. args:%s\n...leaving.\n", args);
+    D(BUG("QUIT. args:%s\n...leaving.\n", args));
     _quit = TRUE;
 }
 

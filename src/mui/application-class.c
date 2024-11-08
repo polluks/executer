@@ -17,6 +17,7 @@
 #include "classes.h"
 
 #include "m68k.h"
+#include "../debug.h"
 
 #define ABOUT_TEXT MUIX_C MUIX_B"Executer\n" \
 MUIX_N "©2024 Joni Valtanen\n" \
@@ -113,7 +114,7 @@ DEFTMETHOD(ExecuterApplication_Quit)
         data->quit = 1;
     }
 #endif
-    fprintf (stderr, "Application quit -> hide\n");
+    D(BUG("Application quit -> hide\n"));
     data->quit = 1;
     return 0;
 }
