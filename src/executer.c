@@ -97,11 +97,11 @@ int main (int argc, char **argv)
                 notify_dispose ();
             }
             if (signals & _win_signal) {
-                fprintf (stderr, "call window_dispose()\n");
+                //fprintf (stderr, "call window_dispose()\n");
                 window_dispose (&_quit);
 #ifndef ENABLE_MUI
                 _win_signal = window_signal ();
-                fprintf (stderr, "win signal:%lu\n", (long unsigned int)_win_signal);
+                //fprintf (stderr, "win signal:%lu\n", (long unsigned int)_win_signal);
 #endif
             }
             if (signals & SIGBREAKF_CTRL_C) {

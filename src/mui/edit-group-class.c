@@ -108,8 +108,17 @@ DEFNEW(ExecuterEditGroup)
         data->BT_ok = BT_ok;
         data->BT_cancel = BT_cancel;
         
+        set (data->BT_ok, MUIA_Disabled, TRUE);
+        
         DoMethod (data->BT_ok, MUIM_Notify, MUIA_Pressed, FALSE, obj, 1, MM_ExecuterEditGroup_Ok);
         DoMethod (data->BT_cancel, MUIM_Notify, MUIA_Pressed, FALSE, obj, 1, MM_ExecuterEditGroup_Cancel);
+
+        DoMethod (data->CM_create, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, obj, 1, MM_ExecuterEditGroup_CheckValidy);
+        DoMethod (data->CM_delete, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, obj, 1, MM_ExecuterEditGroup_CheckValidy);
+        DoMethod (data->CM_modify, MUIM_Notify, MUIA_Selected, MUIV_EveryTime, obj, 1, MM_ExecuterEditGroup_CheckValidy);
+ 
+        DoMethod (data->ST_path, MUIM_Notify, MUIA_String_Contents, MUIV_EveryTime, obj, 1, MM_ExecuterEditGroup_CheckValidy);
+        DoMethod (data->ST_command, MUIM_Notify, MUIA_String_Contents, MUIV_EveryTime, obj, 1, MM_ExecuterEditGroup_CheckValidy);
     }
 
     return (ULONG)obj;
@@ -134,16 +143,13 @@ DEFGET(ExecuterEditGroup)
 static void reset(struct ExecuterEditGroupData *data)
 {
     ULONG b = 0;
-    fprintf (stderr, "reset() - 0\n");
+    set (data->BT_ok, MUIA_Disabled, TRUE);
     set (data->CM_create, MUIA_Selected, b);
     set (data->CM_modify, MUIA_Selected, b);
     set (data->CM_delete, MUIA_Selected, b);
-    fprintf (stderr, "reset() - 1\n");
     set (data->ST_path, MUIA_String_Contents, (ULONG)"");
     set (data->ST_command, MUIA_String_Contents, (ULONG)"");
-    fprintf (stderr, "reset() - 2\n");
     data->item = NULL;
-    fprintf (stderr, "reset() - 3\n");
 }
 
 static void doset(APTR obj, struct ExecuterEditGroupData *data, struct TagItem *tags)
@@ -197,11 +203,11 @@ DEFTMETHOD(ExecuterEditGroup_Ok)
     get (data->ST_path, MUIA_String_Contents, &path);
     get (data->ST_command, MUIA_String_Contents, &command);
 
-    get (data->CM_create, MUIA_String_Contents, &create);
+    get (data->CM_create, MUIA_Selected, &create);
     reason = (create!=0)?NOTIFY_REASON_CREATE:0;
-    get (data->CM_delete, MUIA_String_Contents, &delete);
+    get (data->CM_delete, MUIA_Selected, &delete);
     reason |= (delete!=0)?NOTIFY_REASON_DELETE:0;
-    get (data->CM_modify, MUIA_String_Contents, &modify);
+    get (data->CM_modify, MUIA_Selected, &modify);
     reason |= (modify!=0)?NOTIFY_REASON_MODIFY:0;
 
     if (data->item != NULL) {
@@ -232,12 +238,41 @@ DEFTMETHOD(ExecuterEditGroup_Cancel)
     return 0;
 }
 
+DEFTMETHOD(ExecuterEditGroup_CheckValidy)
+{
+    struct ExecuterEditGroupData *data = INST_DATA (cl, obj);
+    BOOL valid = FALSE;
+    char *path = NULL;
+    char *command = NULL;
+    ULONG create = 0;
+    ULONG delete = 0;
+    ULONG modify = 0;
+
+    get (data->ST_path, MUIA_String_Contents, &path);
+    get (data->ST_command, MUIA_String_Contents, &command);
+
+    get (data->CM_create, MUIA_Selected, &create);
+    get (data->CM_delete, MUIA_Selected, &delete);
+    get (data->CM_modify, MUIA_Selected, &modify);
+    fprintf (stderr, "check validity() path:'%s', command:'%s'\n", path, command);
+    fprintf (stderr, "- create:'%s - (%ul)', delete:'%s', modify:%s\n", (create!=0)?"TRUE":"FALSE", create, (delete!=0)?"TRUE":"FALSE", (modify!=0)?"TRUE":"FALSE");
+
+    if (((modify != 0)|(delete != 0)|(create !=0)) && (path != NULL) && (strlen(path) > 0) && (command !=NULL) && (strlen(command) > 0)) {
+        valid = TRUE;
+    }
+
+    set (data->BT_ok, MUIA_Disabled, !valid);
+
+    return 0;
+}
+
 BEGINMTABLE2(executereditgroupclass)
 DECNEW(ExecuterEditGroup)
 DECGET(ExecuterEditGroup)
 DECSET(ExecuterEditGroup)
 DECTMETHOD(ExecuterEditGroup_Ok)
 DECTMETHOD(ExecuterEditGroup_Cancel)
+DECTMETHOD(ExecuterEditGroup_CheckValidy)
 ENDMTABLE
 
 DECSUBCLASS_NC(MUIC_Group, executereditgroupclass, ExecuterEditGroupData)

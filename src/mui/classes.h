@@ -59,6 +59,7 @@ enum {
     MM_ExecuterApplyGroup_Cancel,    
     MM_ExecuterEditGroup_Ok,
     MM_ExecuterEditGroup_Cancel,
+    MM_ExecuterEditGroup_CheckValidy,
 
     MA_Executer_EditItem,
     MA_Executer_ContextMenuEnabled,
