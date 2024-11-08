@@ -188,6 +188,13 @@ int notify_remove_index_from_list (int index)
     return 0;
 }
 
+int notify_remove_item_from_list (struct notify_item *item)
+{
+    if (item == NULL) return 1;
+    Remove ((struct Node *) item);
+    return 0;
+}
+
 int notify_remove (const char *path)
 {
     struct notify_item *item;

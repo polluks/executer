@@ -248,6 +248,7 @@ DEFMMETHOD(ContextMenuChoice)
 /* Own methods */
 DEFSMETHOD(ExecuterListview_Add)
 {
+#if 0
     struct ExecuterListviewData *data = INST_DATA (cl, obj);
     //struct ExecuterListItem *item = NULL;
     const char *item = "TST";
@@ -261,7 +262,7 @@ DEFSMETHOD(ExecuterListview_Add)
     DoMethod (data->LI_list,
         MUIM_List_InsertSingle, item,
         MUIV_List_Insert_Bottom);
-
+#endif
     return 0;
 }
 

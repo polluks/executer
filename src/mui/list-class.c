@@ -155,15 +155,16 @@ DEFTMETHOD(ExecuterList_RemoveSelected)
         DoMethod (obj, MUIM_List_GetEntry, pos, &e);
 
         if (e != NULL && e->item != NULL) {
-            fprintf (stderr, "remove - %s\n", e->item->path);
-            if (!notify_remove_index_from_list (e->index) != 0) {
+            fprintf (stderr, "remove[%d] - %s\n", e->index, e->item->path);
+            if (notify_remove_item_from_list (e->item) != 0) {
                fprintf (stderr, "Could not remove notify item.\n");
             }
         }
     }
 
-    DoMethod (obj, MUIM_List_Remove, MUIV_List_Remove_Active);
-    DoMethod (obj, MUIM_List_Remove, MUIV_List_Remove_Selected);
+//    DoMethod (obj, MUIM_List_Remove, MUIV_List_Remove_Active);
+//    DoMethod (obj, MUIM_List_Remove, MUIV_List_Remove_Selected);
+    DoMethod (obj, MM_ExecuterList_Update);
 
     return 0;
 }
@@ -206,6 +207,7 @@ DEFTMETHOD(ExecuterList_Clear)
 DEFTMETHOD(ExecuterList_Update)
 {
     int i = 0;
+    int j = 0;
     struct notify_item *nitem, *nnext;
     struct List *nlist = notify_list();
 
@@ -217,6 +219,7 @@ DEFTMETHOD(ExecuterList_Update)
     while ((nnext = (struct notify_item *)nitem->node.ln_Succ) != NULL) {
         if (nitem->cb != NULL) { /* skip internals */
             nitem = nnext;
+            i++;
             continue;
         }
 
@@ -225,12 +228,15 @@ DEFTMETHOD(ExecuterList_Update)
             item.item = nitem;
             item.index = i++;
             DoMethod (obj, MUIM_List_InsertSingle, &item, MUIV_List_Insert_Bottom);
+            j++;
         }
-
         nitem = nnext;
     }
 
-
+    if (j>0) { 
+        set (obj, MUIA_List_Active, MUIV_List_Active_Top);
+        DoMethod(obj, MUIM_List_Select, MUIV_List_Select_Active, MUIV_List_Select_Toggle, NULL);
+    }
     return 0;
 }
 
