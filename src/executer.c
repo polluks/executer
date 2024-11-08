@@ -39,7 +39,6 @@ int main (int argc, char **argv)
 	if (libraries_open () != 0) {
 		return 1;
 	}
-
 	/* Setup AREXX */
         retval = arexx_init (AREXX_PORTNAME, _commands);
         if (retval > 0) { /* fail */
@@ -47,6 +46,7 @@ int main (int argc, char **argv)
             return 1;
         } else if (retval < 0) { /* already open */
             /* FIXME: send arexx show window */
+            arexx_send_simple (AREXX_PORTNAME, "SHOW");
             arexx_free ();
 	    libraries_close ();
             return 0;

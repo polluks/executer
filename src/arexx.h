@@ -14,6 +14,7 @@ struct rx_command {
 
 int arexx_init (const char *name, struct rx_command  *list);
 ULONG arexx_signal (void);
+void arexx_send_simple (const char *name, const char *command);
 void arexx_free (void);
 int arexx_dispose (void);
 

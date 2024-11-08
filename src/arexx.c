@@ -43,6 +43,36 @@ int arexx_init (const char *name, struct rx_command  *list)
     return retval;
 }
 
+void arexx_send_simple (const char *name, const char *command)
+{
+    struct MsgPort *rxport = NULL;
+    struct RexxMsg *msg = NULL;
+    struct RexxMsg *rm;
+
+    D(BUG("AREXX - Sending command %s to port %s\n", command, name));
+    msg = CreateRexxMsg (rxport, NULL, name);
+    if (msg == NULL) {
+        fprintf (stderr, "Could not create RexxMsg\n");
+        return;
+    }
+    msg->rm_Args[0] = (STRPTR)CreateArgstring(command, strlen (command));
+    msg->rm_Action = RXCOMM;
+    msg->rm_Node.mn_Node.ln_Name="REXX";
+
+    Forbid();
+    if ((rxport = FindPort (name)) != 0) {
+        PutMsg(rxport,(struct Message *)msg);
+    }
+    Permit();
+
+    if (rxport) {
+        while ((rm = (struct RexxMsg *)GetMsg(rxport))) {
+            D(BUG("AREXX - got reply: %p\n", rm));
+        }
+    }
+    DeleteRexxMsg (msg);
+}
+
 ULONG arexx_signal (void)
 {
     return _signal;
@@ -77,7 +107,7 @@ int arexx_dispose (void)
         if (msg->rm_Node.mn_Node.ln_Type == NT_REPLYMSG) { /* got reply. we sent arexx */
         } else {
             /* receive arexx command */
-            D(BUG("AREXX in: %s\n", (char *)msg->rm_Args[0]));
+            D(BUG("AREXX: %s\n", (char *)msg->rm_Args[0]));
             args = (char *)msg->rm_Args[0];
             while (*args != '\0' && *args != ' ') args++;
             if (*args == ' ') args++;
@@ -87,7 +117,7 @@ int arexx_dispose (void)
                     len = strlen(rcmd->command);
                     if ( 0 == strncmp (rcmd->command, (const char *)msg->rm_Args[0], strlen(rcmd->command)) && 
                         (((char *)msg->rm_Args[0])[len] == ' ' || ((char *)msg->rm_Args[0])[len] == '\0')) {
-                        D(BUG("call command: %s\n", rcmd->command));
+                        D(BUG("AREXX - call command: %s\n", rcmd->command));
                         rcmd->func (msg, args);
                         break;
                     }
