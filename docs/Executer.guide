@@ -1,0 +1,45 @@
+@DATABASE
+@TOC MAIN
+@NODE MAIN "Executer"
+@{"Introduction" LINK INTRODUCTION}
+@{"Requirements" LINK REQUIREMENTS}
+@{"Installation" LINK INSTALLATION}
+@{"Settings" LINK SETTINGS}
+@{"AREXX" LINK AREXX}
+@ENDNODE
+
+@NODE INTRODUCTION "Introduction"
+Executor is small background application which can run commands or scripts
+when something happens to files or directories. Possible actions are create,
+delete and modify.
+
+TODO: rest
+@ENDNODE
+
+
+@NODE REQUIREMENTS "Requirements"
+TODO: Requirements
+@ENDNODE
+
+
+@NODE INSTALLATION "Installation"
+TODO: Installation
+@ENDNODE
+
+
+@NODE SETTINGS "Settings"
+TODO: Settings
+@ENDNODE
+
+
+@NODE AREXX "AREXX"
+Executer AREXX port is EXECUTER.
+
+AREXX interface contains following commands:
+@{"SHOW" LINK RX ADDRESS 'EXECUTER' SHOW} - show settings.
+@{"HIDE" LINK RX ADRESS 'EXECUTER' HIDE} - hide settings.
+@{"QUIT" LINK RX ADDRESS 'EXECUTER' QUIT} - quit Executer
+
+Executer also uses AREXX to keep application single instance. It is possible
+to show settings running Executor again second time.
+@ENDNODE

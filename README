@@ -15,11 +15,23 @@ Check the Executer.guide for further information.
 REQUIREMENTS
 ------------
 
-Amiga computer with 3.x kickstart and 1MB of memory. Also MorphOS version is
-build. 
+Amiga 3.x - Gadtools version
+- 1MB of memory
+- AREXX
 
-Suitable Filesystem for dos.library:s notify requester. Yes, support from
+Amiga 3.x - MUI version
+- 1MB of memory
+- MUI3.8 + BetterString
+- AREXX
+
+MorphOS 3.x.
+- BetterString
+- AREXX
+
+Suitable Filesystem for dos.librarys notify requester. Yes, support from
 filesystem is required.
+
+------- TODO -------
 
 Most common filesystems were tested to work: FFS, SFS and PFS-aio.
 
@@ -27,3 +39,5 @@ RAM disk and UAEs directory drives also works.
 
 Also some network filesystem likes were tested: Samba, NFS, FTPMount and
 NetFS-revised.
+
+---- END OF TODO ----
