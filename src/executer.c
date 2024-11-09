@@ -87,7 +87,7 @@ int main (int argc, char **argv)
 #endif
         _win_signal = window_signal ();
         while (_quit == FALSE) {
-             window_dispose (&_quit);
+            window_dispose (&_quit);
             signals = Wait (_rx_signal | _notify_signal | _win_signal | SIGBREAKF_CTRL_C);
             if (signals & _rx_signal) {
                 arexx_dispose ();
