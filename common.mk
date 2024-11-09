@@ -1,5 +1,3 @@
-TARGET=Executer
-
 SRCS= src/executer.c \
 	src/libraries.c \
 	src/arexx.c \
@@ -35,6 +33,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -o $@ $(LIBS)
+	$(STRIP) $(TARGET)
 
 $(OBJS): %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@

@@ -1,9 +1,12 @@
 CC=ppc-morphos-gcc
+STRIP=ppc-morphos-strip
 RM=rm -f
 
 CFLAGS=-I. -Isrc -Iinclude -O2 -Wall -Werror
 LDFLAGS=-noixemul
 
 ENABLE_MUI=1
+
+TARGET=Executer_mos
 
 include common.mk
