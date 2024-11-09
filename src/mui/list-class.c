@@ -31,15 +31,15 @@ struct ExecuterListData
 {
 };
 
-#ifndef __MORPHOS__
-DEFHOOKFUNC2(APTR, List_Construct, APTR pool, struct MP_ExecuterListview_Add  *data)
+static BOOL _build_entry (struct MP_ExecuterListview_Add *data, struct ExecuterListEntry *entry)
 {
-    struct ExecuterListEntry *nentry = (struct ExecuterListEntry *)AllocPooled (pool, sizeof (struct ExecuterListEntry));
     size_t pos = 0;
     char *file_part;
 
-    nentry->item = data->item;
-    nentry->index = data->index;
+    if (entry == NULL || data == NULL) return FALSE;
+
+    entry->item = data->item;
+    entry->index = data->index;
 
 #if 1
     file_part = data->item->path;
@@ -55,10 +55,22 @@ DEFHOOKFUNC2(APTR, List_Construct, APTR pool, struct MP_ExecuterListview_Add  *d
     if (pos > 79) {
         pos = 79;
     }
-    CopyMem (file_part, nentry->line, pos);
-    nentry->line[pos] = '\0';
+    CopyMem (file_part, entry->line, pos);
+    entry->line[pos] = '\0';
+    return TRUE;
+}
 
-    return (APTR)nentry;
+#ifndef __MORPHOS__
+DEFHOOKFUNC2(APTR, List_Construct, APTR pool, struct MP_ExecuterListview_Add  *data)
+{
+    struct ExecuterListEntry *entry = (struct ExecuterListEntry *)AllocPooled (pool, sizeof (struct ExecuterListEntry));
+
+    if (_build_entry (data, entry) == FALSE) {
+        if (entry != NULL) FreePooled (pool, entry, sizeof (struct ExecuterListEntry));
+        return (APTR)0;
+    }
+
+    return (APTR)entry;
 }
 
 DEFHOOKFUNC2(void, List_Destruct, APTR pool, struct ExecuterListEntry *e)
@@ -78,8 +90,8 @@ DEFHOOKFUNC2(APTR, List_Display, char **array, struct ExecuterListEntry *e)
 
 DEFHOOKFUNC2(LONG, List_Compare, struct ExecuterListEntry *e1, struct ExecuterListEntry *e2)
 {
-    LONG result = 0;
     //struct ExecuterListData *data = e1->data;
+    LONG result = 0;
 
     if (e1->index < e2->index) {
         result = 1;
@@ -245,11 +257,15 @@ DEFTMETHOD(ExecuterList_Update)
 #ifdef __MORPHOS__
 DEFMMETHOD(List_Construct)
 {
-    struct ExecuterListEntry *nentry = (struct ExecuterListEntry *)calloc (sizeof (struct ExecuterListEntry), 1);
+    struct MP_ExecuterListview_Add *data = (struct MP_ExecuterListview_Add *) msg->entry;
+    struct ExecuterListEntry *entry = (struct ExecuterListEntry *)calloc (sizeof (struct ExecuterListEntry), 1);
 
-    nentry->line = "test";
+    if (_build_entry (data, entry) == FALSE) {
+        if (entry != NULL) free (entry);
+        return (ULONG)0;
+    }
 
-    return (ULONG)nentry;
+    return (ULONG)entry;
 }
 
 DEFMMETHOD(List_Destruct)
@@ -278,20 +294,16 @@ DEFMMETHOD(List_Compare)
 {
 #if 0
     struct ExecuterListData *data = INST_DATA(cl, obj);
+#endif
     struct ExecuterListEntry *e1 = (struct ExecuterListEntry *)msg->entry1;
     struct ExecuterListEntry *e2 = (struct ExecuterListEntry *)msg->entry2;
-#endif
     LONG result = 0;
 
-#if 0
-    if (e1->info->pos > e2->info->pos) {
+    if (e1->index < e2->index) {
         result = 1;
-    } else if (e1->info->pos < e2->info->pos) {
+    } else if (e1->index > e2->index) {
         result = -1; 
     }
-
-    result *= data->order;
-#endif
 
     return result;
 }

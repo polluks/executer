@@ -22,7 +22,7 @@
 #define ABOUT_TEXT MUIX_C MUIX_B"Executer\n" \
 MUIX_N "©2024 Joni Valtanen\n" \
 "GPLv2\n\n" \
-"Ver 0.1 (01.11.24)\n" \
+"Ver 0.1 (10.11.24)\n" \
 "jvaltane at kapsi fi\n" \
 "http://jvaltane.kapsi.fi/executer/\n"
 

@@ -27,7 +27,7 @@ Object *ExecuterMainMenu (void)
 
 Object *ExecuterLabel (const char *text)
 {
-    return (Object *)MUI_NewObject((CONST_STRPTR)MUIC_Text,
+    return (Object *)MUI_NewObject((STRPTR)MUIC_Text,
         NoFrame,
         MUIA_Text_Contents, text,
         MUIA_Text_SetMax, FALSE,

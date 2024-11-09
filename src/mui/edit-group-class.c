@@ -158,7 +158,7 @@ static void doset(APTR obj, struct ExecuterEditGroupData *data, struct TagItem *
     FORTAG(tags)
     {
         case MA_Executer_EditItem: {
-            data->item = (struct nofity_item *)tag->ti_Data;
+            data->item = (struct notify_item *)(tag->ti_Data);
             D(BUG("Trying to set0: item: %p path: '%s', command: '%s'\n", data->item, data->item->path, data->item->command));
             if  (data->item != NULL) {
                 BOOL create = ((data->item->reason & NOTIFY_REASON_CREATE) != 0)?TRUE:FALSE;
