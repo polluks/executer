@@ -66,13 +66,13 @@ int main (int argc, char **argv)
 	    libraries_close ();
             return 1;
         }
-        
+
         retval = prefs_load ();
         if (retval != 0) {
             window_free ();
             notify_free ();
             arexx_free ();
-	    libraries_close ();
+            libraries_close ();
             return 1;
         }
         (void)notify_add (PREFS_PATH_ENV, "", NOTIFY_REASON_CREATE|NOTIFY_REASON_DELETE|NOTIFY_REASON_MODIFY, _prefs_modified);
@@ -81,7 +81,7 @@ int main (int argc, char **argv)
         _rx_signal = arexx_signal ();
         _notify_signal = notify_signal ();
 //        _win_signal = window_signal ();
-	/* Open window if requested */
+        /* Open window if requested */
 #ifdef ENABLE_MUI
         window_dispose (&_quit);
 #endif
