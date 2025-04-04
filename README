@@ -1,3 +1,6 @@
+This WIP and not properly tested. Especially use/save functionality. Amiga
+Gadtools versions GUI does not work properly. AmigaGuide is also WIP.
+
 ========
 EXECUTER
 ========
@@ -15,29 +18,50 @@ Check the Executer.guide for further information.
 REQUIREMENTS
 ------------
 
-Amiga 3.x - Gadtools version
-- 1MB of memory
-- AREXX
-
 Amiga 3.x - MUI version
 - 1MB of memory
-- MUI3.8 + BetterString
+- MUI3.8 + MUI BetterString
 - AREXX
 
 MorphOS 3.x.
-- BetterString
+- MUI BetterString
+- AREXX
+
+Amiga 3.x - Gadtools version 
+- 1MB of memory
 - AREXX
 
 Suitable Filesystem for dos.librarys notify requester. Yes, support from
-filesystem is required.
+filesystem is required. RAM-disk, SFS and  UAE "directory" drives works.
 
-------- TODO -------
+-------
+INSTALL
+-------
 
-Most common filesystems were tested to work: FFS, SFS and PFS-aio.
+Copy executer to C: and start application from commandline.
 
-RAM disk and UAEs directory drives also works.
+To get prefs visible run it again or sent AREXX show command. Application also
+sends show AREXX command to another instance and quits.
 
-Also some network filesystem likes were tested: Samba, NFS, FTPMount and
-NetFS-revised.
+When you are happy with prefs you can add it to user-startup using something
+like: "run executer >NIL:"
 
----- END OF TODO ----
+---------------
+SOURCE LICENSES
+---------------
+
+include/vapor.h - took from MophOS mplayer sources. But same header is used in
+MorphOS Ambient desktop. I think Ambient is opensource so this is also. File
+does not say it.
+
+include/mui/BetterString_mcc.h - BetterString header. LGPL2.1 or later.
+
+Rest: GPL2 or later.
+
+----
+TODO
+----
+
+Test filesystems: FFS and PFS.
+Test network filesystems: Samba, NFS, FTPMount and NetFS(-revised).
+
