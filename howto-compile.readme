@@ -1,0 +1,25 @@
+==============
+HOW TO COMPILE
+==============
+
+-----------
+MorphOS MUI
+-----------
+
+make -f Makefile.mos
+
+-----
+Amiga
+-----
+
+Bebbos cross environment
+
+Amiga MUI (GCC): ENABLE_MUI=1 make -f Makefile.gcc
+
+-----------------------
+Currently not supported
+-----------------------
+
+Amiga Gadtools (GCC): make -f akefile.gcc
+Amiga MUI (VBCC): ENABLE_MUI=1 make -f Makefile.vbcc
+Amiga Gadtools (VBCC): make -f Makefile.vbcc
