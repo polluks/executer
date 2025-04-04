@@ -1,14 +1,29 @@
-@DATABASE
-@TOC MAIN
+@DATABASE Executer
+@(c) "Copyright <A9> 2013 Joni Valtanen"
+@$VER: Executer 0.1
+@INDEX MAIN
+@WORDWRAP
+
 @NODE MAIN "Executer"
-@{"Introduction" LINK INTRODUCTION}
-@{"Requirements" LINK REQUIREMENTS}
-@{"Installation" LINK INSTALLATION}
-@{"Settings" LINK SETTINGS}
-@{"AREXX" LINK AREXX}
+@{jcenter}
+
+@{b}Executer 0.1@{ub}
+
+Copyright <A9> 2024 Joni Valtanen <jvaltane at kapsi dot fi
+
+@{"     About      " link ABOUT}
+@{"    Features    " link FEATURES}
+@{"  Requirements  " LINK REQUIREMENTS}
+@{"    Install     " LINK INSTALL}
+@{"    Settings    " LINK SETTINGS}
+@{"     AREXX      " LINK AREXX}
+
 @ENDNODE
 
-@NODE INTRODUCTION "Introduction"
+@NODE ABOUT "About"
+
+                          @{b}About@{ub}
+
 Executor is small background application which can run commands or scripts
 when something happens to files or directories. Possible actions are create,
 delete and modify.
@@ -16,24 +31,36 @@ delete and modify.
 TODO: rest
 @ENDNODE
 
+@NODE FEATURES "Features"
 
-@NODE REQUIREMENTS "Requirements"
-TODO: Requirements
+                          @{b}Features@{ub}
 @ENDNODE
 
 
-@NODE INSTALLATION "Installation"
-TODO: Installation
+@NODE REQUIREMENTS "Requirements"
+
+                         @{b}Requirements@{ub}
+@ENDNODE
+
+
+@NODE INSTALL "Install"
+
+                           @{b}Install@{ub}
 @ENDNODE
 
 
 @NODE SETTINGS "Settings"
-TODO: Settings
+
+                           @{b}Settings@{ub}
 @ENDNODE
 
 
 @NODE AREXX "AREXX"
-Executer AREXX port is EXECUTER.
+
+                           @{b}AREXX@{ub}
+
+Executer AREXX port is EXECUTER. No numbers at the end. Executer is single
+instance application.
 
 AREXX interface contains following commands:
 @{"SHOW" LINK RX ADDRESS 'EXECUTER' SHOW} - show settings.
