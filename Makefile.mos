@@ -2,7 +2,9 @@ CC=ppc-morphos-gcc
 STRIP=ppc-morphos-strip
 RM=rm -f
 
-CFLAGS=-I. -Isrc -Iinclude -O2 -Wall -Werror
+CFLAGS=-I. -Isrc -Iinclude -O2 -Wall -Werror -noixemul
+# too lazy to fix at this point
+CFLAGS+=-Wno-misleading-indentation
 LDFLAGS=-noixemul
 
 ENABLE_MUI=1

@@ -1,8 +1,20 @@
 CC=vc +aos68k
-
 RM=rm -f
+STRIP=true
 
 CFLAGS=-cpu=68000 -fpu=0 -I. -Iinclude -Isrc -O3
+# for // comments at this point
+CFLAGS+=-c99
 LDFLAGS=-lamiga
+
+ifeq ($(ENABLE_MUI), 1)
+LIBS+=-lmui
+endif
+
+ifeq ($(ENABLE_MUI), 1)
+TARGET=Executer_mui
+else
+TARGET=Executer
+endif
 
 include common.mk
