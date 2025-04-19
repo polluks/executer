@@ -59,12 +59,12 @@ TODO: rest
 
                            @{b}AREXX@{ub}
 
-Executer AREXX port is EXECUTER. No numbers at the end. Executer is single
+Executer AREXX port is EXECUTER. No numbers at the end. Executer is a single
 instance application.
 
 AREXX interface contains following commands:
 @{"SHOW" LINK RX ADDRESS 'EXECUTER' SHOW} - show settings.
-@{"HIDE" LINK RX ADRESS 'EXECUTER' HIDE} - hide settings.
+@{"HIDE" LINK RX ADDRESS 'EXECUTER' HIDE} - hide settings.
 @{"QUIT" LINK RX ADDRESS 'EXECUTER' QUIT} - quit Executer
 
 Executer also uses AREXX to keep application single instance. It is possible
